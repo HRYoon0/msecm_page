@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MSECM — Glocal Education Group</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwindcss.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: {
+              50: '#eef4fa',
+              100: '#d5e3f2',
+              200: '#adc8e5',
+              300: '#7da8d4',
+              400: '#4a8ab5',
+              500: '#2d6a9f',
+              600: '#1e5580',
+              700: '#1e3a5f',
+              800: '#162b45',
+              900: '#0f1d2f',
+              950: '#091320',
+            },
+            accent: {
+              DEFAULT: '#3b82c4',
+              light: '#5ba0db',
+              dark: '#2563a0',
+            }
+          },
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+            display: ['Pretendard', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Pretendard 폰트 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
+
+  <!-- Iconify -->
+  <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+  <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+
+  <style>
+    * { word-break: keep-all; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+
+    /* 스프링 물리 트랜지션 */
+    .spring-transition { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+
+    /* 스크롤 진입 애니메이션 */
+    /* 기본 스크롤 진입 */
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(2rem);
+      filter: blur(4px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .scroll-reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+
+    /* 방향별 슬라이드 진입 */
+    .reveal-left { opacity: 0; transform: translateX(-3rem); transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal-right { opacity: 0; transform: translateX(3rem); transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal-scale { opacity: 0; transform: scale(0.85); transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal-left.revealed, .reveal-right.revealed, .reveal-scale.revealed {
+      opacity: 1; transform: translateX(0) scale(1);
+    }
+
+    /* 버튼 글로우 효과 */
+    @keyframes btnGlow {
+      0%, 100% { box-shadow: 0 0 5px rgba(30, 58, 95, 0.2); }
+      50% { box-shadow: 0 0 20px rgba(59, 130, 196, 0.4), 0 0 40px rgba(59, 130, 196, 0.1); }
+    }
+    .btn-glow { animation: btnGlow 3s ease-in-out infinite; }
+
+    /* 버튼 시머 효과 */
+    .btn-shimmer { position: relative; overflow: hidden; }
+    .btn-shimmer::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -75%;
+      width: 50%;
+      height: 200%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      transform: skewX(-25deg);
+      animation: shimmer 4s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0% { left: -75%; }
+      100% { left: 150%; }
+    }
+
+    /* 텍스트 타이핑 효과 */
+    .text-reveal-line {
+      display: inline-block;
+      clip-path: inset(0 100% 0 0);
+      transition: clip-path 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .text-reveal-line.revealed { clip-path: inset(0 0 0 0); }
+
+    /* 이미지 줌인 효과 */
+    .img-zoom { overflow: hidden; }
+    .img-zoom img {
+      transition: transform 6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .img-zoom.revealed img { transform: scale(1.08); }
+
+    /* 마우스 추적 카드 틸트 */
+    .tilt-card { transition: transform 0.3s ease; }
+
+    /* 패럴랙스 */
+    .parallax-slow { transition: transform 0.1s linear; }
+
+    /* 펄스 뱃지 */
+    @keyframes pulseBadge {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    .pulse-badge { animation: pulseBadge 2.5s ease-in-out infinite; }
+
+    /* 섹션 구분선 애니메이션 */
+    .section-divider-animated {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(30, 58, 95, 0.12), transparent);
+      transform: scaleX(0);
+      transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .section-divider-animated.revealed { transform: scaleX(1); }
+
+    /* 카운터 바운스 */
+    @keyframes counterBounce {
+      0% { transform: scale(0.5); opacity: 0; }
+      60% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .counter-bounce { animation: counterBounce 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    /* 아이콘 회전 호버 */
+    .icon-spin-hover { transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+    .icon-spin-hover:hover { transform: rotate(15deg) scale(1.1); }
+
+    /* 그라데이션 배경 이동 */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .gradient-animated {
+      background-size: 200% 200%;
+      animation: gradientShift 8s ease infinite;
+    }
+
+    /* 카드 3D 호버 */
+    .card-3d { perspective: 1000px; }
+    .card-3d:hover { transform: translateY(-6px) rotateX(2deg); box-shadow: 0 25px 50px rgba(30, 58, 95, 0.12); }
+
+    /* 스태거 딜레이 */
+    .stagger-1 { transition-delay: 0.1s !important; }
+    .stagger-2 { transition-delay: 0.2s !important; }
+    .stagger-3 { transition-delay: 0.3s !important; }
+    .stagger-4 { transition-delay: 0.4s !important; }
+    .stagger-5 { transition-delay: 0.5s !important; }
+
+    /* 글래스 네비게이션 */
+    .glass-nav {
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.85);
+      border-bottom: 1px solid rgba(30, 58, 95, 0.08);
+    }
+    .glass-nav.scrolled {
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.06);
+    }
+
+    /* 메뉴 링크 인디케이터 */
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #2d6a9f, #4a8ab5);
+      border-radius: 1px;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateX(-50%);
+    }
+    .nav-link:hover::after { width: 100%; }
+
+    /* 카운터 애니메이션 */
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 그라데이션 텍스트 */
+    .gradient-text {
+      background: linear-gradient(135deg, #1e3a5f 0%, #3b82c4 50%, #4a8ab5 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* 카드 호버 */
+    .card-hover {
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(30, 58, 95, 0.1);
+    }
+
+    /* 모바일 메뉴 */
+    .mobile-menu {
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-menu.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+    }
+    .mobile-menu.visible {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateY(0);
+    }
+
+    /* 비전 섹션 배경 */
+    .vision-bg {
+      background: linear-gradient(135deg, #0f1d2f 0%, #1e3a5f 40%, #2d5a8a 100%);
+    }
+
+    /* 파티클 효과 */
+    .floating-dot {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(74, 138, 181, 0.3);
+      animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-20px) scale(1.1); }
+    }
+
+    /* 섹션 구분선 */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(30, 58, 95, 0.12), transparent);
+    }
+
+    /* 탭 스타일 */
+    .tab-btn {
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #1e3a5f, #2d6a9f);
+      color: white;
+      box-shadow: 0 4px 15px rgba(30, 58, 95, 0.3);
+    }
+
+    /* 타임라인 */
+    .timeline-line {
+      background: linear-gradient(180deg, #4a8ab5, #1e3a5f);
+    }
+  </style>
+</head>
+<body class="bg-white text-navy-900 antialiased">
+
+  <!-- ==================== 네비게이션 ==================== -->
+  <nav id="navbar" class="glass-nav fixed top-0 left-0 right-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 lg:h-20">
+        <!-- 로고 -->
+        <a href="#" class="flex items-center group">
+          <img src="./logo.png" alt="MSECM" class="h-10 sm:h-12 w-auto spring-transition group-hover:scale-105" />
+        </a>
+
+        <!-- 데스크톱 메뉴 -->
+        <div class="hidden lg:flex items-center gap-1">
+          <a href="#about" class="nav-link relative px-4 py-2 text-sm font-medium text-navy-600 hover:text-navy-800 spring-transition">회사 소개</a>
+          <a href="#business" class="nav-link relative px-4 py-2 text-sm font-medium text-navy-600 hover:text-navy-800 spring-transition">사업 안내</a>
+          <a href="#press" class="nav-link relative px-4 py-2 text-sm font-medium text-navy-600 hover:text-navy-800 spring-transition">보도·홍보</a>
+          <a href="./academy.html" target="_blank" class="nav-link relative px-4 py-2 text-sm font-medium text-navy-600 hover:text-navy-800 spring-transition">연수원</a>
+          <a href="#resources" class="nav-link relative px-4 py-2 text-sm font-medium text-navy-600 hover:text-navy-800 spring-transition">자료실</a>
+          <a href="#contact" class="ml-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold spring-transition hover:scale-[1.02] hover:shadow-lg" style="background-color: #1e3a5f; color: #ffffff;">
+            문의하기
+            <span class="w-6 h-6 rounded-full flex items-center justify-center spring-transition" style="background-color: rgba(255,255,255,0.15);">
+              <span class="iconify w-3.5 h-3.5" data-icon="solar:arrow-right-linear" style="color: #ffffff;"></span>
+            </span>
+          </a>
+        </div>
+
+        <!-- 모바일 햄버거 -->
+        <button id="mobileToggle" class="lg:hidden p-2 rounded-xl hover:bg-navy-50 spring-transition" onclick="toggleMobile()">
+          <span class="iconify w-6 h-6 text-navy-700" data-icon="solar:hamburger-menu-linear"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 모바일 메뉴 -->
+    <div id="mobileMenu" class="mobile-menu hidden lg:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-navy-100 shadow-xl">
+      <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-1">
+        <a href="#about" onclick="closeMobile()" class="px-4 py-3 rounded-xl text-navy-700 font-medium hover:bg-navy-50 spring-transition">회사 소개</a>
+        <a href="#business" onclick="closeMobile()" class="px-4 py-3 rounded-xl text-navy-700 font-medium hover:bg-navy-50 spring-transition">사업 안내</a>
+        <a href="#press" onclick="closeMobile()" class="px-4 py-3 rounded-xl text-navy-700 font-medium hover:bg-navy-50 spring-transition">보도·홍보</a>
+        <a href="./academy.html" target="_blank" onclick="closeMobile()" class="px-4 py-3 rounded-xl text-navy-700 font-medium hover:bg-navy-50 spring-transition">연수원</a>
+        <a href="#resources" onclick="closeMobile()" class="px-4 py-3 rounded-xl text-navy-700 font-medium hover:bg-navy-50 spring-transition">자료실</a>
+        <a href="#contact" onclick="closeMobile()" class="mt-2 px-4 py-3 rounded-xl font-semibold text-center spring-transition" style="background-color: #1e3a5f; color: #ffffff;">문의하기</a>
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- ==================== 히어로 섹션 ==================== -->
+  <section class="relative min-h-[100dvh] flex items-center overflow-hidden pt-20">
+    <!-- 배경 장식 -->
+    <div class="absolute inset-0">
+      <div class="absolute top-20 right-0 w-[600px] h-[600px] bg-gradient-to-br from-navy-100/40 to-accent-light/10 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-10 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-navy-50/60 to-transparent rounded-full blur-3xl"></div>
+      <!-- 그리드 패턴 -->
+      <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, #1e3a5f 1px, transparent 1px); background-size: 40px 40px;"></div>
+    </div>
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <!-- 좌측 콘텐츠 -->
+        <div class="scroll-reveal" style="animation-delay: 0ms;">
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-navy-50 border border-navy-100 mb-8">
+            <span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+            <span class="text-sm font-medium text-navy-600">글로컬 교육의 새로운 기준</span>
+          </div>
+
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight mb-6">
+            <span class="text-navy-800">세계를 연결하는</span><br/>
+            <span class="gradient-text">교육의 다리를</span><br/>
+            <span class="text-navy-800">만듭니다</span>
+          </h1>
+
+          <p class="text-lg sm:text-xl text-navy-500 leading-relaxed max-w-lg mb-10">
+            MSECM은 글로벌과 로컬을 잇는 맞춤형 교육 솔루션으로 기업과 기관의 성장을 이끕니다. 현장 중심의 교육 설계로 실질적인 변화를 만들어갑니다.
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-4">
+            <a href="#business" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full font-semibold spring-transition hover:scale-[1.02] hover:shadow-xl group btn-glow btn-shimmer" style="background-color: #1e3a5f; color: #ffffff;">
+              사업 안내 보기
+              <span class="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center spring-transition group-hover:translate-x-1">
+                <span class="iconify w-4 h-4" data-icon="solar:arrow-right-linear"></span>
+              </span>
+            </a>
+            <a href="#contact" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full border border-navy-200 text-navy-700 font-semibold spring-transition hover:bg-navy-50 hover:border-navy-300">
+              <span class="iconify w-4 h-4" data-icon="solar:phone-calling-linear"></span>
+              상담 문의
+            </a>
+          </div>
+        </div>
+
+        <!-- 우측 비주얼 -->
+        <div class="scroll-reveal relative" style="animation-delay: 200ms;">
+          <div class="relative">
+            <!-- 메인 이미지 카드 -->
+            <div class="relative rounded-3xl overflow-hidden shadow-2xl shadow-navy-200/50 img-zoom scroll-reveal">
+              <img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&h=600&fit=crop" alt="MSECM 교육 현장" class="w-full aspect-[4/3] object-cover" loading="eager" />
+              <div class="absolute inset-0 bg-gradient-to-t from-navy-900/30 to-transparent"></div>
+            </div>
+
+            <!-- 플로팅 카드 1 -->
+            <div class="absolute -bottom-6 -left-6 bg-white rounded-2xl p-4 shadow-xl shadow-navy-100/50 border border-navy-50 spring-transition hover:scale-105" style="animation: float 5s ease-in-out infinite;">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #2d6a9f, #3b82c4);">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div>
+                  <p class="text-xs text-navy-400">누적 교육생</p>
+                  <p class="text-lg font-bold text-navy-800">25,000+</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 플로팅 카드 2 -->
+            <div class="absolute -top-4 -right-4 bg-white rounded-2xl p-4 shadow-xl shadow-navy-100/50 border border-navy-50 spring-transition hover:scale-105" style="animation: float 7s ease-in-out infinite 1s;">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #3b82c4, #4a8ab5);">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </div>
+                <div>
+                  <p class="text-xs text-navy-400">파트너 국가</p>
+                  <p class="text-lg font-bold text-navy-800">15개국</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==================== 신뢰 지표 ==================== -->
+  <section class="py-16 bg-navy-50/50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 scroll-reveal">
+        <div class="text-center">
+          <p class="text-3xl sm:text-4xl font-extrabold gradient-text counter" data-target="18">0</p>
+          <p class="text-sm text-navy-500 mt-1">설립 연차</p>
+        </div>
+        <div class="text-center">
+          <p class="text-3xl sm:text-4xl font-extrabold gradient-text counter" data-target="350">0</p>
+          <p class="text-sm text-navy-500 mt-1">수행 프로젝트</p>
+        </div>
+        <div class="text-center">
+          <p class="text-3xl sm:text-4xl font-extrabold gradient-text counter" data-target="25000">0</p>
+          <p class="text-sm text-navy-500 mt-1">누적 교육 인원</p>
+        </div>
+        <div class="text-center">
+          <p class="text-3xl sm:text-4xl font-extrabold gradient-text counter" data-target="97">0</p>
+          <p class="text-sm text-navy-500 mt-1">교육 만족도(%)</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==================== 비전 섹션 (team-mono 스타일) ==================== -->
+  <section class="vision-bg gradient-animated relative py-32 sm:py-40 lg:py-48 overflow-hidden">
+    <!-- 파티클 -->
+    <div class="floating-dot w-3 h-3" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
+    <div class="floating-dot w-5 h-5" style="top: 60%; left: 80%; animation-delay: 2s;"></div>
+    <div class="floating-dot w-2 h-2" style="top: 40%; left: 50%; animation-delay: 4s;"></div>
+    <div class="floating-dot w-4 h-4" style="top: 80%; left: 25%; animation-delay: 1s;"></div>
+    <div class="floating-dot w-3 h-3" style="top: 15%; left: 70%; animation-delay: 3s;"></div>
+
+    <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="scroll-reveal">
+        <p class="text-sm font-semibold tracking-[0.2em] uppercase mb-8" style="color: rgba(91,160,219,0.8);">Our Vision</p>
+        <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight mb-8" style="color: #ffffff;">
+          교육으로 세계를 연결하고,<br/>
+          <span style="color: #5ba0db;">사람의 가능성을</span><br/>
+          현실로 만듭니다
+        </h2>
+        <p class="text-lg sm:text-xl leading-relaxed max-w-2xl mx-auto mb-12" style="color: #a8c8e8;">
+          MSECM은 'Glocal Education'이라는 철학 아래, 글로벌 역량과 지역의 필요를 연결하는 교육을 설계합니다. 단순한 지식 전달이 아닌, 함께 성장하는 교육 생태계를 만들어갑니다.
+        </p>
+        <div class="flex flex-wrap justify-center gap-6 text-sm">
+          <div class="flex items-center gap-2" style="color: #c0d8ee;">
+            <span class="w-8 h-8 rounded-full flex items-center justify-center" style="background-color: rgba(255,255,255,0.1);">
+              <span class="iconify w-4 h-4" data-icon="solar:hand-shake-bold"></span>
+            </span>
+            글로컬 파트너십
+          </div>
+          <div class="flex items-center gap-2" style="color: #c0d8ee;">
+            <span class="w-8 h-8 rounded-full flex items-center justify-center" style="background-color: rgba(255,255,255,0.1);">
+              <span class="iconify w-4 h-4" data-icon="solar:users-group-rounded-bold"></span>
+            </span>
+            사람 중심 교육
+          </div>
+          <div class="flex items-center gap-2" style="color: #c0d8ee;">
+            <span class="w-8 h-8 rounded-full flex items-center justify-center" style="background-color: rgba(255,255,255,0.1);">
+              <span class="iconify w-4 h-4" data-icon="solar:chart-2-bold"></span>
+            </span>
+            실질적 성과
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==================== 회사 소개 ==================== -->
+  <section id="about" class="py-24 sm:py-32">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- 섹션 헤더 -->
+      <div class="scroll-reveal mb-16 lg:mb-20">
+        <p class="text-accent text-sm font-semibold tracking-wider uppercase mb-3">About MSECM</p>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-navy-800 tracking-tight mb-4">회사 소개</h2>
+        <p class="text-lg text-navy-500 max-w-2xl">글로컬 교육의 선두주자, MSECM의 과거와 현재, 그리고 미래를 소개합니다.</p>
+      </div>
+
+      <!-- 탭 네비게이션 -->
+      <div class="flex flex-wrap gap-2 mb-12 scroll-reveal">
+        <button class="tab-btn active px-5 py-2.5 rounded-full text-sm font-semibold border border-navy-200" onclick="switchTab('vision-tab', this)">비전·미션</button>
+        <button class="tab-btn px-5 py-2.5 rounded-full text-sm font-semibold text-navy-600 border border-navy-200 hover:bg-navy-50" onclick="switchTab('history-tab', this)">연혁</button>
+        <button class="tab-btn px-5 py-2.5 rounded-full text-sm font-semibold text-navy-600 border border-navy-200 hover:bg-navy-50" onclick="switchTab('projects-tab', this)">진행 사업</button>
+      </div>
+
+      <!-- 탭 콘텐츠: 비전·미션 -->
+      <div id="vision-tab" class="tab-content">
+        <div class="grid lg:grid-cols-5 gap-8 items-stretch">
+          <div class="lg:col-span-3 scroll-reveal flex">
+            <div class="bg-gradient-to-br from-navy-50 to-white rounded-3xl p-8 sm:p-10 border border-navy-100 flex flex-col justify-center w-full">
+              <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center" style="background-color: #1e3a5f;">
+                  <span class="iconify w-6 h-6" data-icon="solar:compass-big-bold" style="color: #ffffff;"></span>
+                </div>
+                <h3 class="text-2xl font-bold text-navy-800">비전</h3>
+              </div>
+              <p class="text-xl sm:text-2xl font-bold text-navy-700 leading-snug mb-6">
+                "글로벌 역량을 갖춘 인재 양성을 통해<br/>지역사회와 세계를 연결하는 교육 플랫폼"
+              </p>
+              <p class="text-navy-500 leading-relaxed">
+                MSECM은 국경을 초월한 교육 네트워크를 구축하여, 각 지역의 고유한 필요에 맞는 맞춤형 교육 프로그램을 제공합니다. 우리의 교육은 교실에서 시작해 세계로 나아갑니다.
+              </p>
+            </div>
+          </div>
+          <div class="lg:col-span-2 flex flex-col gap-6 scroll-reveal" style="animation-delay: 100ms;">
+            <div class="bg-white rounded-3xl p-8 border border-navy-100 card-hover flex-1 flex flex-col justify-center">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background-color: rgba(59,130,196,0.1);">
+                <span class="iconify w-5 h-5" data-icon="solar:target-bold" style="color: #3b82c4;"></span>
+              </div>
+              <h4 class="text-lg font-bold text-navy-800 mb-2">미션</h4>
+              <p class="text-navy-500 text-sm leading-relaxed">
+                현장 기반의 교육 설계와 글로벌 네트워크를 통해 기업·기관·개인의 지속가능한 성장을 돕습니다.
+              </p>
+            </div>
+            <div class="bg-white rounded-3xl p-8 border border-navy-100 card-hover flex-1 flex flex-col justify-center">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background-color: rgba(59,130,196,0.1);">
+                <span class="iconify w-5 h-5" data-icon="solar:heart-bold" style="color: #3b82c4;"></span>
+              </div>
+              <h4 class="text-lg font-bold text-navy-800 mb-2">핵심가치</h4>
+              <p class="text-navy-500 text-sm leading-relaxed">
+                연결(Connect) · 성장(Growth) · 신뢰(Trust) · 실행(Action)을 핵심 가치로 삼아 교육의 본질을 추구합니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 탭 콘텐츠: 연혁 -->
+      <div id="history-tab" class="tab-content hidden">
+        <div class="relative scroll-reveal">
+          <div class="absolute left-6 sm:left-1/2 top-0 bottom-0 w-0.5 timeline-line transform sm:-translate-x-px"></div>
+          <!-- 타임라인 항목들 -->
+          <div class="space-y-12">
+            <div class="relative flex items-start gap-8 sm:gap-0">
+              <div class="hidden sm:block sm:w-1/2 sm:pr-12 text-right">
+                <span class="text-2xl font-extrabold gradient-text">2007</span>
+                <h4 class="text-lg font-bold text-navy-800 mt-1">MSECM 설립</h4>
+                <p class="text-sm text-navy-500 mt-1">글로컬 교육 전문기관으로 출발</p>
+              </div>
+              <div class="absolute left-4 sm:left-1/2 w-4 h-4 rounded-full bg-navy-700 border-4 border-white shadow transform -translate-x-1/2 mt-1.5"></div>
+              <div class="sm:hidden pl-12">
+                <span class="text-xl font-extrabold gradient-text">2007</span>
+                <h4 class="text-base font-bold text-navy-800 mt-1">MSECM 설립</h4>
+                <p class="text-sm text-navy-500 mt-1">글로컬 교육 전문기관으로 출발</p>
+              </div>
+              <div class="hidden sm:block sm:w-1/2 sm:pl-12"></div>
+            </div>
+            <div class="relative flex items-start gap-8 sm:gap-0">
+              <div class="hidden sm:block sm:w-1/2 sm:pr-12"></div>
+              <div class="absolute left-4 sm:left-1/2 w-4 h-4 rounded-full bg-accent border-4 border-white shadow transform -translate-x-1/2 mt-1.5"></div>
+              <div class="pl-12 sm:pl-0 sm:w-1/2 sm:pl-12">
+                <span class="text-xl sm:text-2xl font-extrabold gradient-text">2012</span>
+                <h4 class="text-base sm:text-lg font-bold text-navy-800 mt-1">해외 교육 사업 확장</h4>
+                <p class="text-sm text-navy-500 mt-1">동남아시아 5개국 교육 프로젝트 개시</p>
+              </div>
+            </div>
+            <div class="relative flex items-start gap-8 sm:gap-0">
+              <div class="hidden sm:block sm:w-1/2 sm:pr-12 text-right">
+                <span class="text-2xl font-extrabold gradient-text">2017</span>
+                <h4 class="text-lg font-bold text-navy-800 mt-1">연수원 개설</h4>
+                <p class="text-sm text-navy-500 mt-1">전문 교육 인프라 구축 및 상시 교육 운영</p>
+              </div>
+              <div class="absolute left-4 sm:left-1/2 w-4 h-4 rounded-full bg-navy-700 border-4 border-white shadow transform -translate-x-1/2 mt-1.5"></div>
+              <div class="sm:hidden pl-12">
+                <span class="text-xl font-extrabold gradient-text">2017</span>
+                <h4 class="text-base font-bold text-navy-800 mt-1">연수원 개설</h4>
+                <p class="text-sm text-navy-500 mt-1">전문 교육 인프라 구축 및 상시 교육 운영</p>
+              </div>
+              <div class="hidden sm:block sm:w-1/2 sm:pl-12"></div>
+            </div>
+            <div class="relative flex items-start gap-8 sm:gap-0">
+              <div class="hidden sm:block sm:w-1/2 sm:pr-12"></div>
+              <div class="absolute left-4 sm:left-1/2 w-4 h-4 rounded-full bg-accent border-4 border-white shadow transform -translate-x-1/2 mt-1.5"></div>
+              <div class="pl-12 sm:pl-0 sm:w-1/2 sm:pl-12">
+                <span class="text-xl sm:text-2xl font-extrabold gradient-text">2022</span>
+                <h4 class="text-base sm:text-lg font-bold text-navy-800 mt-1">디지털 전환 교육 론칭</h4>
+                <p class="text-sm text-navy-500 mt-1">기업 맞춤형 DX 교육 프로그램 개발</p>
+              </div>
+            </div>
+            <div class="relative flex items-start gap-8 sm:gap-0">
+              <div class="hidden sm:block sm:w-1/2 sm:pr-12 text-right">
+                <span class="text-2xl font-extrabold gradient-text">2026</span>
+                <h4 class="text-lg font-bold text-navy-800 mt-1">글로벌 교육 허브</h4>
+                <p class="text-sm text-navy-500 mt-1">15개국 교육 네트워크 운영, 누적 교육생 25,000명 돌파</p>
+              </div>
+              <div class="absolute left-4 sm:left-1/2 w-4 h-4 rounded-full bg-navy-700 border-4 border-white shadow transform -translate-x-1/2 mt-1.5"></div>
+              <div class="sm:hidden pl-12">
+                <span class="text-xl font-extrabold gradient-text">2026</span>
+                <h4 class="text-base font-bold text-navy-800 mt-1">글로벌 교육 허브</h4>
+                <p class="text-sm text-navy-500 mt-1">15개국 교육 네트워크 운영, 누적 교육생 25,000명 돌파</p>
+              </div>
+              <div class="hidden sm:block sm:w-1/2 sm:pl-12"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 탭 콘텐츠: 진행 사업 -->
+      <div id="projects-tab" class="tab-content hidden">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 scroll-reveal">
+          <div class="bg-white rounded-3xl p-6 border border-navy-100 card-hover">
+            <img src="https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=600&h=400&fit=crop" alt="국제 교육 협력" class="w-full aspect-[3/2] object-cover rounded-2xl mb-5" loading="lazy" />
+            <span class="text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full">국제 협력</span>
+            <h4 class="text-lg font-bold text-navy-800 mt-3 mb-2">ODA 교육 사업</h4>
+            <p class="text-sm text-navy-500 leading-relaxed">개발도상국 대상 교육 인프라 구축 및 교사 역량 강화 프로그램 운영</p>
+          </div>
+          <div class="bg-white rounded-3xl p-6 border border-navy-100 card-hover">
+            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop" alt="기업 교육" class="w-full aspect-[3/2] object-cover rounded-2xl mb-5" loading="lazy" />
+            <span class="text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full">기업 교육</span>
+            <h4 class="text-lg font-bold text-navy-800 mt-3 mb-2">맞춤형 기업 연수</h4>
+            <p class="text-sm text-navy-500 leading-relaxed">글로벌 역량, 리더십, 디지털 전환 등 기업 니즈에 특화된 교육 프로그램</p>
+          </div>
+          <div class="bg-white rounded-3xl p-6 border border-navy-100 card-hover">
+            <img src="https://images.unsplash.com/photo-1531545514256-b1400bc00f31?w=600&h=400&fit=crop" alt="공공 교육" class="w-full aspect-[3/2] object-cover rounded-2xl mb-5" loading="lazy" />
+            <span class="text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full">공공 교육</span>
+            <h4 class="text-lg font-bold text-navy-800 mt-3 mb-2">공공기관 역량 강화</h4>
+            <p class="text-sm text-navy-500 leading-relaxed">지방자치단체, 공공기관 종사자 대상 글로벌 역량 및 직무 교육</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider-animated max-w-7xl mx-auto scroll-reveal"></div>
+
+
+  <!-- ==================== 사업 안내 ==================== -->
+  <section id="business" class="py-24 sm:py-32">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="scroll-reveal mb-16">
+        <p class="text-accent text-sm font-semibold tracking-wider uppercase mb-3">Our Business</p>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-navy-800 tracking-tight mb-4">현행 사업</h2>
+        <p class="text-lg text-navy-500 max-w-2xl">MSECM이 현재 수행 중인 핵심 사업 영역을 소개합니다.</p>
+      </div>
+
+      <!-- 벤토 그리드 -->
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- 대형 카드 -->
+        <div class="md:col-span-2 rounded-3xl p-8 sm:p-10 card-hover scroll-reveal relative overflow-hidden" style="background: linear-gradient(135deg, #1e3a5f, #0f1d2f); color: #ffffff;">
+          <div class="absolute top-0 right-0 w-80 h-80 rounded-full blur-3xl" style="background-color: rgba(59,130,196,0.1);"></div>
+          <div class="relative">
+            <div class="w-14 h-14 rounded-2xl flex items-center justify-center mb-6" style="background-color: rgba(255,255,255,0.1);">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </div>
+            <h3 class="text-2xl sm:text-3xl font-bold mb-4">글로벌 교육 컨설팅</h3>
+            <p class="leading-relaxed mb-6 max-w-lg" style="color: #adc8e5;">
+              다국적 기업 및 공공기관을 대상으로 글로벌 역량 강화 교육을 설계하고 운영합니다. 현지 전문가 네트워크와 협력하여 실효성 높은 교육 솔루션을 제공합니다.
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <span class="px-3 py-1 rounded-full text-sm" style="background-color: rgba(255,255,255,0.1);">교육과정 설계</span>
+              <span class="px-3 py-1 rounded-full text-sm" style="background-color: rgba(255,255,255,0.1);">강사 파견</span>
+              <span class="px-3 py-1 rounded-full text-sm" style="background-color: rgba(255,255,255,0.1);">성과 측정</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 작은 카드 -->
+        <div class="bg-white rounded-3xl p-8 border border-navy-100 card-hover scroll-reveal" style="animation-delay: 100ms;">
+          <div class="w-14 h-14 rounded-2xl bg-navy-50 flex items-center justify-center mb-6">
+            <span class="iconify w-7 h-7 text-navy-700" data-icon="solar:notebook-bold"></span>
+          </div>
+          <h3 class="text-xl font-bold text-navy-800 mb-3">기업 맞춤 교육</h3>
+          <p class="text-navy-500 text-sm leading-relaxed mb-4">
+            기업의 비즈니스 목표와 조직 문화에 맞춘 교육 프로그램을 개발합니다. 리더십, 직무역량, DX 교육 등 다양한 영역을 아우릅니다.
+          </p>
+          <a href="#contact" class="inline-flex items-center gap-1 text-sm font-semibold text-accent spring-transition hover:gap-2">
+            자세히 보기
+            <span class="iconify w-4 h-4" data-icon="solar:arrow-right-linear"></span>
+          </a>
+        </div>
+
+        <!-- 중간 카드들 -->
+        <div class="bg-navy-50 rounded-3xl p-8 card-hover scroll-reveal" style="animation-delay: 150ms;">
+          <div class="w-14 h-14 rounded-2xl bg-white flex items-center justify-center mb-6 shadow-sm">
+            <span class="iconify w-7 h-7 text-navy-700" data-icon="solar:diploma-verified-bold"></span>
+          </div>
+          <h3 class="text-xl font-bold text-navy-800 mb-3">자격 인증 교육</h3>
+          <p class="text-navy-500 text-sm leading-relaxed">
+            국내외 공인 자격 취득을 위한 체계적 교육과 인증 프로그램을 운영합니다.
+          </p>
+        </div>
+
+        <div class="bg-white rounded-3xl p-8 border border-navy-100 card-hover scroll-reveal" style="animation-delay: 200ms;">
+          <div class="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center mb-6">
+            <span class="iconify w-7 h-7 text-accent" data-icon="solar:monitor-smartphone-bold"></span>
+          </div>
+          <h3 class="text-xl font-bold text-navy-800 mb-3">온라인 교육 플랫폼</h3>
+          <p class="text-navy-500 text-sm leading-relaxed">
+            시간과 공간의 제약 없이 학습할 수 있는 온라인 교육 콘텐츠 및 플랫폼을 제공합니다.
+          </p>
+        </div>
+
+        <div class="bg-gradient-to-br from-accent/5 to-navy-50 rounded-3xl p-8 border border-navy-100 card-hover scroll-reveal" style="animation-delay: 250ms;">
+          <div class="w-14 h-14 rounded-2xl bg-white flex items-center justify-center mb-6 shadow-sm">
+            <span class="iconify w-7 h-7 text-navy-700" data-icon="solar:people-nearby-bold"></span>
+          </div>
+          <h3 class="text-xl font-bold text-navy-800 mb-3">국제 교류 프로그램</h3>
+          <p class="text-navy-500 text-sm leading-relaxed">
+            해외 기관과의 교류를 통한 벤치마킹, 합동 세미나, 현지 연수 프로그램을 기획·운영합니다.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider-animated max-w-7xl mx-auto scroll-reveal"></div>
+
+
+  <!-- ==================== 보도 및 홍보 ==================== -->
+  <section id="press" class="py-24 sm:py-32 bg-navy-50/30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-12 scroll-reveal">
+        <div>
+          <p class="text-accent text-sm font-semibold tracking-wider uppercase mb-3">News & Media</p>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-navy-800 tracking-tight">보도·홍보 자료</h2>
+        </div>
+        <a href="#" class="inline-flex items-center gap-2 text-sm font-semibold text-navy-600 hover:text-accent spring-transition">
+          전체 보기
+          <span class="iconify w-4 h-4" data-icon="solar:arrow-right-linear"></span>
+        </a>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <article class="bg-white rounded-3xl overflow-hidden border border-navy-100 card-hover scroll-reveal group">
+          <div class="overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=500&fit=crop" alt="뉴스 이미지" class="w-full aspect-[16/10] object-cover spring-transition group-hover:scale-105" loading="lazy" />
+          </div>
+          <div class="p-6">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-xs font-semibold text-accent bg-accent/10 px-2.5 py-0.5 rounded-full">보도자료</span>
+              <span class="text-xs text-navy-400">2026.03.15</span>
+            </div>
+            <h3 class="text-lg font-bold text-navy-800 mb-2 leading-snug">MSECM, 동남아시아 교육 혁신 포럼 공동 개최</h3>
+            <p class="text-sm text-navy-500 leading-relaxed line-clamp-2">인도네시아 자카르타에서 열린 교육 혁신 포럼에서 MSECM이 공동 주최 기관으로 참여하여 글로컬 교육 모델을 발표했습니다.</p>
+          </div>
+        </article>
+
+        <article class="bg-white rounded-3xl overflow-hidden border border-navy-100 card-hover scroll-reveal group" style="animation-delay: 100ms;">
+          <div class="overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800&h=500&fit=crop" alt="뉴스 이미지" class="w-full aspect-[16/10] object-cover spring-transition group-hover:scale-105" loading="lazy" />
+          </div>
+          <div class="p-6">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-xs font-semibold text-accent bg-accent/10 px-2.5 py-0.5 rounded-full">홍보</span>
+              <span class="text-xs text-navy-400">2026.02.28</span>
+            </div>
+            <h3 class="text-lg font-bold text-navy-800 mb-2 leading-snug">2026년 상반기 기업교육 프로그램 안내</h3>
+            <p class="text-sm text-navy-500 leading-relaxed line-clamp-2">글로벌 리더십, 디지털 전환, 조직문화 혁신 등 기업 맞춤형 교육 프로그램의 상반기 일정을 공개합니다.</p>
+          </div>
+        </article>
+
+        <article class="bg-white rounded-3xl overflow-hidden border border-navy-100 card-hover scroll-reveal group" style="animation-delay: 200ms;">
+          <div class="overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1559223607-a43c990c692c?w=800&h=500&fit=crop" alt="뉴스 이미지" class="w-full aspect-[16/10] object-cover spring-transition group-hover:scale-105" loading="lazy" />
+          </div>
+          <div class="p-6">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-xs font-semibold text-accent bg-accent/10 px-2.5 py-0.5 rounded-full">수상</span>
+              <span class="text-xs text-navy-400">2026.01.10</span>
+            </div>
+            <h3 class="text-lg font-bold text-navy-800 mb-2 leading-snug">교육부 장관 표창 수상</h3>
+            <p class="text-sm text-navy-500 leading-relaxed line-clamp-2">국제 교육 협력 분야에서의 공로를 인정받아 교육부 장관 표창을 수상했습니다.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==================== 연수원 ==================== -->
+  <section id="academy" class="py-24 sm:py-32">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <!-- 좌측 이미지 -->
+        <div class="scroll-reveal relative">
+          <div class="rounded-3xl overflow-hidden shadow-xl shadow-navy-100/50">
+            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&h=700&fit=crop" alt="MSECM 연수원" class="w-full aspect-[4/3] object-cover" loading="lazy" />
+          </div>
+          <div class="absolute -bottom-6 -right-6 rounded-2xl p-5 shadow-xl" style="background-color: #1e3a5f; color: #ffffff;">
+            <p class="text-3xl font-extrabold">A+</p>
+            <p class="text-xs text-navy-200 mt-1">시설 평가 등급</p>
+          </div>
+        </div>
+
+        <!-- 우측 콘텐츠 -->
+        <div class="scroll-reveal" style="animation-delay: 150ms;">
+          <p class="text-accent text-sm font-semibold tracking-wider uppercase mb-3">Academy</p>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-navy-800 tracking-tight mb-6">MSECM 연수원</h2>
+          <p class="text-lg text-navy-500 leading-relaxed mb-8">
+            최적의 교육 환경을 갖춘 MSECM 연수원은 숙박 연수부터 당일 교육까지 다양한 형태의 프로그램을 운영할 수 있는 종합 교육 시설입니다.
+          </p>
+
+          <div class="space-y-4 mb-8">
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-xl bg-navy-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span class="iconify w-5 h-5 text-navy-600" data-icon="solar:buildings-bold"></span>
+              </div>
+              <div>
+                <h4 class="font-bold text-navy-800 mb-1">교육 시설</h4>
+                <p class="text-sm text-navy-500">대·중·소 강의실, 분임토의실, 멀티미디어실 등 다양한 교육 공간</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-xl bg-navy-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span class="iconify w-5 h-5 text-navy-600" data-icon="solar:bed-bold"></span>
+              </div>
+              <div>
+                <h4 class="font-bold text-navy-800 mb-1">숙박 시설</h4>
+                <p class="text-sm text-navy-500">쾌적한 1인실·2인실 객실과 편의시설 완비</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-xl bg-navy-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span class="iconify w-5 h-5 text-navy-600" data-icon="solar:cup-hot-bold"></span>
+              </div>
+              <div>
+                <h4 class="font-bold text-navy-800 mb-1">부대 시설</h4>
+                <p class="text-sm text-navy-500">식당, 카페테리아, 체력단련실, 야외 휴식 공간</p>
+              </div>
+            </div>
+          </div>
+
+          <a href="#contact" class="inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold spring-transition hover:scale-[1.02] hover:shadow-lg group" style="background-color: #1e3a5f; color: #ffffff;">
+            연수원 예약 문의
+            <span class="w-6 h-6 rounded-full bg-white/15 flex items-center justify-center spring-transition group-hover:translate-x-1">
+              <span class="iconify w-3.5 h-3.5" data-icon="solar:arrow-right-linear"></span>
+            </span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider-animated max-w-7xl mx-auto scroll-reveal"></div>
+
+
+  <!-- ==================== 자료실 ==================== -->
+  <section id="resources" class="py-24 sm:py-32">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="scroll-reveal mb-12">
+        <p class="text-accent text-sm font-semibold tracking-wider uppercase mb-3">Resources</p>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-navy-800 tracking-tight mb-4">자료실</h2>
+        <p class="text-lg text-navy-500">교육 자료, 브로셔, 리서치 보고서 등 다양한 자료를 제공합니다.</p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 scroll-reveal">
+        <!-- 자료 카드 -->
+        <a href="#" class="group bg-white rounded-2xl p-5 border border-navy-100 card-hover flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
+            <span class="iconify w-6 h-6 text-red-500" data-icon="solar:file-text-bold"></span>
+          </div>
+          <div class="min-w-0">
+            <h4 class="text-sm font-bold text-navy-800 mb-1 truncate">2026 교육 브로셔</h4>
+            <p class="text-xs text-navy-400">PDF · 4.2MB</p>
+          </div>
+        </a>
+        <a href="#" class="group bg-white rounded-2xl p-5 border border-navy-100 card-hover flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+            <span class="iconify w-6 h-6 text-blue-500" data-icon="solar:presentation-graph-bold"></span>
+          </div>
+          <div class="min-w-0">
+            <h4 class="text-sm font-bold text-navy-800 mb-1 truncate">기업교육 소개서</h4>
+            <p class="text-xs text-navy-400">PPT · 8.1MB</p>
+          </div>
+        </a>
+        <a href="#" class="group bg-white rounded-2xl p-5 border border-navy-100 card-hover flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
+            <span class="iconify w-6 h-6 text-green-500" data-icon="solar:document-bold"></span>
+          </div>
+          <div class="min-w-0">
+            <h4 class="text-sm font-bold text-navy-800 mb-1 truncate">연수원 이용 안내</h4>
+            <p class="text-xs text-navy-400">PDF · 2.8MB</p>
+          </div>
+        </a>
+        <a href="#" class="group bg-white rounded-2xl p-5 border border-navy-100 card-hover flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center flex-shrink-0">
+            <span class="iconify w-6 h-6 text-purple-500" data-icon="solar:chart-bold"></span>
+          </div>
+          <div class="min-w-0">
+            <h4 class="text-sm font-bold text-navy-800 mb-1 truncate">교육 성과 보고서</h4>
+            <p class="text-xs text-navy-400">PDF · 5.6MB</p>
+          </div>
+        </a>
+        <a href="#" class="group bg-white rounded-2xl p-5 border border-navy-100 card-hover flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
+            <span class="iconify w-6 h-6 text-orange-500" data-icon="solar:video-library-bold"></span>
+          </div>
+          <div class="min-w-0">
+            <h4 class="text-sm font-bold text-navy-800 mb-1 truncate">교육 영상 모음</h4>
+            <p class="text-xs text-navy-400">영상 · 12편</p>
+          </div>
+        </a>
+        <a href="#" class="group bg-white rounded-2xl p-5 border border-navy-100 card-hover flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
+            <span class="iconify w-6 h-6 text-teal-500" data-icon="solar:gallery-bold"></span>
+          </div>
+          <div class="min-w-0">
+            <h4 class="text-sm font-bold text-navy-800 mb-1 truncate">교육 현장 갤러리</h4>
+            <p class="text-xs text-navy-400">이미지 · 48장</p>
+          </div>
+        </a>
+        <a href="#" class="group bg-white rounded-2xl p-5 border border-navy-100 card-hover flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
+            <span class="iconify w-6 h-6 text-indigo-500" data-icon="solar:clipboard-list-bold"></span>
+          </div>
+          <div class="min-w-0">
+            <h4 class="text-sm font-bold text-navy-800 mb-1 truncate">교육과정 커리큘럼</h4>
+            <p class="text-xs text-navy-400">PDF · 3.4MB</p>
+          </div>
+        </a>
+        <a href="#" class="group bg-white rounded-2xl p-5 border border-navy-100 card-hover flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-pink-50 flex items-center justify-center flex-shrink-0">
+            <span class="iconify w-6 h-6 text-pink-500" data-icon="solar:newspaper-bold"></span>
+          </div>
+          <div class="min-w-0">
+            <h4 class="text-sm font-bold text-navy-800 mb-1 truncate">뉴스레터 아카이브</h4>
+            <p class="text-xs text-navy-400">PDF · 월간</p>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==================== 문의 ==================== -->
+  <section id="contact" class="py-24 sm:py-32 bg-navy-50/30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-5 gap-12">
+        <!-- 좌측 정보 -->
+        <div class="lg:col-span-2 scroll-reveal">
+          <p class="text-accent text-sm font-semibold tracking-wider uppercase mb-3">Contact Us</p>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-navy-800 tracking-tight mb-6">문의하기</h2>
+          <p class="text-lg text-navy-500 leading-relaxed mb-10">
+            교육 프로그램, 연수원 이용, 사업 제안 등 궁금한 점이 있으시면 편하게 문의해 주세요.
+          </p>
+
+          <div class="space-y-6">
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-xl bg-navy-100 flex items-center justify-center flex-shrink-0">
+                <span class="iconify w-5 h-5 text-navy-600" data-icon="solar:phone-bold"></span>
+              </div>
+              <div>
+                <p class="text-sm text-navy-400 mb-0.5">전화</p>
+                <p class="font-semibold text-navy-800">02-1234-5678</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-xl bg-navy-100 flex items-center justify-center flex-shrink-0">
+                <span class="iconify w-5 h-5 text-navy-600" data-icon="solar:letter-bold"></span>
+              </div>
+              <div>
+                <p class="text-sm text-navy-400 mb-0.5">이메일</p>
+                <p class="font-semibold text-navy-800">contact@msecm.co.kr</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-xl bg-navy-100 flex items-center justify-center flex-shrink-0">
+                <span class="iconify w-5 h-5 text-navy-600" data-icon="solar:map-point-bold"></span>
+              </div>
+              <div>
+                <p class="text-sm text-navy-400 mb-0.5">주소</p>
+                <p class="font-semibold text-navy-800">서울특별시 강남구 테헤란로 123, MSECM빌딩 5층</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 우측 폼 -->
+        <div class="lg:col-span-3 scroll-reveal" style="animation-delay: 150ms;">
+          <form class="bg-white rounded-3xl p-8 sm:p-10 border border-navy-100 shadow-sm">
+            <div class="grid sm:grid-cols-2 gap-5 mb-5">
+              <div>
+                <label class="block text-sm font-semibold text-navy-700 mb-2">이름</label>
+                <input type="text" placeholder="홍길동" class="w-full px-4 py-3 rounded-xl border border-navy-200 text-navy-800 placeholder-navy-300 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent spring-transition" />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-navy-700 mb-2">연락처</label>
+                <input type="tel" placeholder="010-0000-0000" class="w-full px-4 py-3 rounded-xl border border-navy-200 text-navy-800 placeholder-navy-300 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent spring-transition" />
+              </div>
+            </div>
+            <div class="mb-5">
+              <label class="block text-sm font-semibold text-navy-700 mb-2">이메일</label>
+              <input type="email" placeholder="example@company.com" class="w-full px-4 py-3 rounded-xl border border-navy-200 text-navy-800 placeholder-navy-300 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent spring-transition" />
+            </div>
+            <div class="mb-5">
+              <label class="block text-sm font-semibold text-navy-700 mb-2">문의 유형</label>
+              <select class="w-full px-4 py-3 rounded-xl border border-navy-200 text-navy-800 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent spring-transition appearance-none bg-white">
+                <option value="">선택해 주세요</option>
+                <option>교육 프로그램 문의</option>
+                <option>연수원 이용 문의</option>
+                <option>사업 제안·협력</option>
+                <option>채용 문의</option>
+                <option>기타</option>
+              </select>
+            </div>
+            <div class="mb-6">
+              <label class="block text-sm font-semibold text-navy-700 mb-2">문의 내용</label>
+              <textarea rows="4" placeholder="문의하실 내용을 작성해 주세요." class="w-full px-4 py-3 rounded-xl border border-navy-200 text-navy-800 placeholder-navy-300 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent spring-transition resize-none"></textarea>
+            </div>
+            <button type="submit" class="w-full sm:w-auto px-8 py-3.5 rounded-full font-semibold spring-transition hover:scale-[1.02] hover:shadow-lg" style="background-color: #1e3a5f; color: #ffffff;">
+              문의 보내기
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==================== 푸터 ==================== -->
+  <footer class="bg-navy-900 text-navy-300 pt-16 pb-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+        <!-- 브랜드 -->
+        <div class="sm:col-span-2 lg:col-span-1">
+          <div class="flex items-center gap-2 mb-4">
+            <div>
+              <span class="text-[10px] text-navy-500 block tracking-wider">Glocal Education Group</span>
+              <span class="text-lg font-extrabold text-white tracking-tight">MSECM</span>
+            </div>
+          </div>
+          <p class="text-sm text-navy-400 leading-relaxed">
+            글로벌과 로컬을 잇는 교육의 다리, MSECM이 함께합니다.
+          </p>
+        </div>
+
+        <!-- 바로가기 -->
+        <div>
+          <h4 class="text-sm font-semibold text-white mb-4">바로가기</h4>
+          <ul class="space-y-2.5">
+            <li><a href="#about" class="text-sm text-navy-400 hover:text-white spring-transition">회사 소개</a></li>
+            <li><a href="#business" class="text-sm text-navy-400 hover:text-white spring-transition">사업 안내</a></li>
+            <li><a href="#press" class="text-sm text-navy-400 hover:text-white spring-transition">보도·홍보</a></li>
+            <li><a href="./academy.html" target="_blank" class="text-sm text-navy-400 hover:text-white spring-transition">연수원</a></li>
+          </ul>
+        </div>
+
+        <!-- 고객지원 -->
+        <div>
+          <h4 class="text-sm font-semibold text-white mb-4">고객지원</h4>
+          <ul class="space-y-2.5">
+            <li><a href="#resources" class="text-sm text-navy-400 hover:text-white spring-transition">자료실</a></li>
+            <li><a href="#contact" class="text-sm text-navy-400 hover:text-white spring-transition">문의하기</a></li>
+            <li><a href="#" class="text-sm text-navy-400 hover:text-white spring-transition">FAQ</a></li>
+            <li><a href="#" class="text-sm text-navy-400 hover:text-white spring-transition">오시는 길</a></li>
+          </ul>
+        </div>
+
+        <!-- 연락처 -->
+        <div>
+          <h4 class="text-sm font-semibold text-white mb-4">연락처</h4>
+          <ul class="space-y-2.5">
+            <li class="text-sm text-navy-400">Tel. 02-1234-5678</li>
+            <li class="text-sm text-navy-400">Fax. 02-1234-5679</li>
+            <li class="text-sm text-navy-400">contact@msecm.co.kr</li>
+            <li class="text-sm text-navy-400">평일 09:00 ~ 18:00</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border-t border-navy-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-xs text-navy-500">&copy; 2026 MSECM. All rights reserved.</p>
+        <div class="flex items-center gap-4">
+          <a href="#" class="text-xs text-navy-500 hover:text-white spring-transition">개인정보처리방침</a>
+          <a href="#" class="text-xs text-navy-500 hover:text-white spring-transition">이용약관</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ==================== JavaScript ==================== -->
+  <script>
+    // 스크롤 진입 애니메이션 (IntersectionObserver)
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, index) => {
+        if (entry.isIntersecting) {
+          const delay = entry.target.style.animationDelay || '0ms';
+          const ms = parseInt(delay);
+          setTimeout(() => {
+            entry.target.classList.add('revealed');
+          }, ms);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
+
+    // 네비게이션 스크롤 효과
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    });
+
+    // 모바일 메뉴
+    function toggleMobile() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('hidden');
+      menu.classList.toggle('visible');
+    }
+    function closeMobile() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.add('hidden');
+      menu.classList.remove('visible');
+    }
+
+    // 탭 전환
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.classList.add('text-navy-600');
+      });
+      document.getElementById(tabId).classList.remove('hidden');
+      btn.classList.add('active');
+      btn.classList.remove('text-navy-600');
+
+      // 새 탭의 scroll-reveal 요소 재관찰
+      document.getElementById(tabId).querySelectorAll('.scroll-reveal').forEach(el => {
+        el.classList.remove('revealed');
+        observer.observe(el);
+      });
+    }
+
+    // 카운터 애니메이션
+    function animateCounters() {
+      document.querySelectorAll('.counter').forEach(counter => {
+        const target = parseInt(counter.dataset.target);
+        const duration = 2000;
+        const start = performance.now();
+
+        function update(now) {
+          const elapsed = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 4);
+          const current = Math.floor(eased * target);
+
+          if (target >= 1000) {
+            counter.textContent = current.toLocaleString() + '+';
+          } else {
+            counter.textContent = current + (target === 97 ? '%' : '+');
+          }
+
+          if (progress < 1) requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+      });
+    }
+
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCounters();
+          counterObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    const counterSection = document.querySelector('.counter');
+    if (counterSection) counterObserver.observe(counterSection.closest('section'));
+
+    // 방향별 애니메이션 요소도 관찰
+    document.querySelectorAll('.reveal-left, .reveal-right, .reveal-scale, .section-divider-animated, .img-zoom').forEach(el => observer.observe(el));
+
+    // 마우스 추적 카드 틸트 (3D 효과)
+    document.querySelectorAll('.card-hover').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = (y - centerY) / centerY * -3;
+        const rotateY = (x - centerX) / centerX * 3;
+        card.style.transform = `translateY(-6px) perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+      });
+    });
+
+    // 패럴랙스 스크롤 (히어로/비전 배경 요소)
+    window.addEventListener('scroll', () => {
+      const scrollY = window.scrollY;
+      document.querySelectorAll('.floating-dot').forEach((dot, i) => {
+        const speed = 0.02 + (i * 0.01);
+        dot.style.transform = `translateY(${scrollY * speed * (i % 2 === 0 ? -1 : 1)}px)`;
+      });
+    }, { passive: true });
+
+    // 타이핑 효과 (히어로 뱃지)
+    const badge = document.querySelector('.scroll-reveal .inline-flex');
+    if (badge) {
+      badge.style.opacity = '0';
+      badge.style.transform = 'translateY(10px) scale(0.95)';
+      setTimeout(() => {
+        badge.style.transition = 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+        badge.style.opacity = '1';
+        badge.style.transform = 'translateY(0) scale(1)';
+      }, 300);
+    }
+
+    // 스크롤 프로그레스 바
+    const progressBar = document.createElement('div');
+    progressBar.style.cssText = 'position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#1e3a5f,#3b82c4,#5ba0db);z-index:9999;transition:width 0.1s linear;width:0%;';
+    document.body.appendChild(progressBar);
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      progressBar.style.width = (scrollTop / docHeight * 100) + '%';
+    }, { passive: true });
+
+    // 부드러운 스크롤 (네비게이션 오프셋)
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const target = document.querySelector(link.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          const offset = navbar.offsetHeight + 20;
+          const top = target.getBoundingClientRect().top + window.scrollY - offset;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
