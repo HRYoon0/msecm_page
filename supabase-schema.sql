@@ -14,7 +14,7 @@ CREATE TABLE users (
 
 -- 기본 강사 계정 삽입
 INSERT INTO users (nickname, password, role) VALUES
-  ('KTCS', '1234', 'instructor'),
+  ('MSECM', '1234', 'instructor'),
   ('홍길동', '1234', 'instructor');
 
 -- 2. 프로그램 마스터 테이블
