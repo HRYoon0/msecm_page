@@ -440,8 +440,11 @@
 
   <!-- ==================== 로그인 모달 ==================== -->
   <div id="loginModal" class="modal-overlay">
-    <div class="modal-content fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 pointer-events-auto relative">
+    <div class="modal-content flex items-center justify-center" style="position:fixed;inset:0;padding:1rem;z-index:101;">
+      <!-- 배경 클릭 감지 영역 -->
+      <div id="loginModalBg" style="position:absolute;inset:0;"></div>
+      <!-- 모달 카드 -->
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative" style="z-index:102;">
         <button id="closeLoginBtn" class="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 spring-transition">
           <span class="iconify w-5 h-5" data-icon="solar:close-circle-linear" style="color: #4a8ab5;"></span>
         </button>
@@ -472,8 +475,9 @@
 
   <!-- ==================== 강좌 상세 모달 ==================== -->
   <div id="courseModal" class="modal-overlay">
-    <div class="modal-content fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto pointer-events-auto relative">
+    <div class="modal-content flex items-center justify-center" style="position:fixed;inset:0;padding:1rem;z-index:101;">
+      <div id="courseModalBg" style="position:absolute;inset:0;"></div>
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative" style="z-index:102;">
         <button id="closeCourseBtn" class="absolute top-4 right-4 z-10 p-1.5 rounded-full spring-transition" style="background: rgba(255,255,255,0.9);">
           <span class="iconify w-5 h-5" data-icon="solar:close-circle-linear" style="color: #4a8ab5;"></span>
         </button>
@@ -758,7 +762,6 @@
 
     function updateUIForLogin() {
       var loginBtn = document.getElementById('loginBtn');
-      // 버튼 내용을 안전하게 변경
       loginBtn.textContent = '';
       var icon = document.createElement('span');
       icon.className = 'iconify w-4 h-4';
@@ -767,8 +770,8 @@
       loginBtn.appendChild(icon);
       loginBtn.appendChild(document.createTextNode(' ' + currentUser.nickname));
 
-      // 기존 이벤트 제거 후 재설정 (로그아웃으로 변경하지 않고 별도 버튼)
-      loginBtn.removeEventListener('click', showLoginModal);
+      // 로그인 버튼 → 클릭 무효화 (로그아웃 버튼을 별도로 표시)
+      loginBtn.onclick = null;
 
       var dropdown = document.getElementById('userDropdown');
       if (!dropdown) {
@@ -781,7 +784,6 @@
         loginBtn.parentElement.appendChild(dropdown);
       }
 
-      // 대시보드 & 수료증 UI 전환
       document.getElementById('dashboardLoggedOut').classList.add('hidden');
       document.getElementById('dashboardLoggedIn').classList.remove('hidden');
       document.getElementById('certificateLoggedOut').classList.add('hidden');
@@ -797,7 +799,9 @@
       icon.style.color = '#ffffff';
       loginBtn.appendChild(icon);
       loginBtn.appendChild(document.createTextNode(' 로그인'));
-      loginBtn.addEventListener('click', showLoginModal);
+
+      // 로그인 버튼 → 다시 모달 열기 연결
+      loginBtn.onclick = showLoginModal;
 
       var dropdown = document.getElementById('userDropdown');
       if (dropdown) dropdown.remove();
@@ -1298,8 +1302,8 @@
       document.getElementById('modalCloseBtn').addEventListener('click', closeCourseModal);
 
       // 모달 배경 클릭으로 닫기
-      document.getElementById('loginModal').addEventListener('click', function(e) { if (e.target === this) closeLoginModal(); });
-      document.getElementById('courseModal').addEventListener('click', function(e) { if (e.target === this) closeCourseModal(); });
+      document.getElementById('loginModalBg').addEventListener('click', closeLoginModal);
+      document.getElementById('courseModalBg').addEventListener('click', closeCourseModal);
 
       // 검색
       document.getElementById('heroSearch').addEventListener('keyup', function(e) { handleSearch(this.value); });
@@ -1321,6 +1325,7 @@
         input.addEventListener('focus', function() { this.style.borderColor = '#3b82c4'; });
         input.addEventListener('blur', function() { this.style.borderColor = '#e5e7eb'; });
       });
+      document.getElementById('loginNickname').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('loginPassword').focus(); });
       document.getElementById('loginPassword').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
 
       // 사용자 로드
