@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MSECM · AI·디지털 역량 진단</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
+<style>
+:root {
+  --primary: #2d6a9f;
+  --primary-dark: #1e3a5f;
+  --primary-light: #4a8ab5;
+  --primary-sky: #5ba0db;
+  --primary-bg: #eef4fa;
+  --primary-glow: rgba(30,58,95,0.15);
+  --accent: #3b82c4;
+  --accent-dark: #2563a0;
+  --white: #FFFFFF;
+  --gray-50: #F7FAFD;
+  --gray-100: #F0F4F9;
+  --gray-200: #E2E8F0;
+  --gray-300: #CBD5E1;
+  --gray-400: #94A3B8;
+  --gray-600: #64748B;
+  --gray-800: #334155;
+  --gray-900: #0F172A;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+  --success: #10B981;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow-sm: 0 2px 8px rgba(30,58,95,0.08);
+  --shadow-md: 0 4px 20px rgba(30,58,95,0.12);
+  --shadow-lg: 0 8px 40px rgba(30,58,95,0.18);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: linear-gradient(180deg, #F7FAFD 0%, #eef4fa 100%);
+  color: var(--gray-900);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.blob-bg {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  z-index: 0; pointer-events: none; overflow: hidden;
+}
+.blob-bg::before, .blob-bg::after {
+  content:''; position:absolute; border-radius:50%;
+  filter: blur(80px); opacity: 0.15;
+}
+.blob-bg::before {
+  width:500px; height:500px; top:-100px; right:-100px;
+  background: var(--primary);
+  animation: blobFloat 20s ease-in-out infinite;
+}
+.blob-bg::after {
+  width:400px; height:400px; bottom:-50px; left:-50px;
+  background: var(--accent);
+  animation: blobFloat 25s ease-in-out infinite reverse;
+}
+@keyframes blobFloat {
+  0%,100%{transform:translate(0,0) scale(1)}
+  33%{transform:translate(30px,-40px) scale(1.05)}
+  66%{transform:translate(-20px,30px) scale(0.95)}
+}
+
+/* 네비게이션 */
+.top-nav {
+  position: fixed; top:0; left:0; right:0; z-index:200;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  background: rgba(255,255,255,0.85);
+  border-bottom: 1px solid rgba(30,58,95,0.08);
+  height: 60px;
+}
+.top-nav-inner {
+  max-width: 680px; margin: 0 auto; padding: 0 16px;
+  display: flex; align-items: center; justify-content: space-between; height: 100%;
+}
+
+.container {
+  position: relative; z-index: 1;
+  max-width: 680px; margin: 0 auto;
+  padding: 80px 16px 40px;
+}
+
+.header { text-align: center; margin-bottom: 28px; padding-top: 16px; }
+.msecm-logo {
+  display: inline-flex; align-items: center; gap: 12px;
+  margin-bottom: 18px;
+}
+.msecm-icon {
+  width: 54px; height: 54px;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 50%, #4a8ab5 100%);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 20px rgba(30,58,95,0.35);
+  position: relative;
+}
+.msecm-icon svg { width: 36px; height: 36px; }
+.msecm-text-wrap { text-align: left; line-height: 1; }
+.msecm-tag {
+  font-size: 10px; font-weight: 500;
+  color: var(--gray-600); letter-spacing: 0.3px;
+  margin-bottom: 4px;
+}
+.msecm-text {
+  font-size: 28px; font-weight: 900;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 50%, #4a8ab5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+.header h1 {
+  font-size: 22px; font-weight: 800;
+  color: var(--gray-900);
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+.header h1 em {
+  font-style: normal;
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.header p { font-size: 13px; color: var(--gray-600); font-weight: 400; }
+.badge-row { display: flex; gap: 6px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 5px 11px; border-radius: 20px; font-size: 11px; font-weight: 600; background: var(--primary-bg); color: var(--primary); }
+.badge.sky { background: #E0F7FA; color: #00838F; }
+.badge.gne { background: #EDE7F6; color: #5E35B1; }
+
+.card { background: var(--white); border-radius: var(--radius); padding: 26px 22px; margin-bottom: 14px; box-shadow: var(--shadow-sm); border: 1px solid rgba(30,58,95,0.08); transition: var(--transition); }
+.card:hover { box-shadow: var(--shadow-md); }
+
+.school-level-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 22px; }
+.level-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px 6px; border-radius: var(--radius-sm); border: 2px solid var(--gray-200); background: var(--white); cursor: pointer; transition: var(--transition); text-align: center; }
+.level-btn:hover { border-color: var(--primary-light); transform: translateY(-2px); }
+.level-btn.active { border-color: var(--primary); background: var(--primary-bg); box-shadow: 0 0 0 4px var(--primary-glow); }
+.level-btn .emoji { font-size: 28px; margin-bottom: 6px; }
+.level-btn .label { font-size: 13px; font-weight: 700; color: var(--gray-800); }
+.level-btn .sub { font-size: 10px; color: var(--gray-400); margin-top: 2px; }
+
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 6px; }
+.form-select, .form-input { width: 100%; padding: 12px 16px; border: 2px solid var(--gray-200); border-radius: var(--radius-sm); font-size: 15px; font-family: 'Pretendard Variable', Pretendard, sans-serif; color: var(--gray-900); background: var(--white); transition: var(--transition); -webkit-appearance: none; appearance: none; }
+.form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%232d6a9f'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+.form-select:focus, .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-glow); }
+.form-input::placeholder { color: var(--gray-300); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px 24px; border-radius: var(--radius-sm); font-size: 16px; font-weight: 700; font-family: 'Pretendard Variable', Pretendard, sans-serif; border: none; cursor: pointer; transition: var(--transition); }
+.btn-primary { background: linear-gradient(135deg, #1e3a5f, #2d6a9f, #4a8ab5); color: white; box-shadow: 0 4px 15px rgba(30,58,95,0.35); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(30,58,95,0.45); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-outline { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
+.btn-outline:hover { background: var(--primary-bg); }
+.btn-sm { padding: 10px 16px; font-size: 14px; }
+
+.progress-container { position: sticky; top: 60px; z-index: 100; background: rgba(247,250,253,0.95); backdrop-filter: blur(10px); padding: 12px 0 8px; margin: 0 -16px; padding-left: 16px; padding-right: 16px; }
+.progress-info { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--gray-600); margin-bottom: 6px; }
+.progress-bar-track { height: 8px; background: var(--gray-200); border-radius: 4px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary-dark), var(--primary), var(--accent)); border-radius: 4px; transition: width 0.5s ease; }
+
+.q-card { background: var(--white); border-radius: var(--radius); padding: 24px 20px; margin-bottom: 12px; box-shadow: var(--shadow-sm); border: 1px solid rgba(30,58,95,0.08); opacity: 0; transform: translateY(20px); animation: fadeInUp 0.5s ease forwards; }
+@keyframes fadeInUp { to { opacity:1; transform:translateY(0); } }
+.q-number { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 10px; }
+.q-number .domain-tag { background: var(--primary-bg); padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+.q-text { font-size: 16px; font-weight: 600; line-height: 1.6; color: var(--gray-900); margin-bottom: 6px; }
+.q-hint { font-size: 13px; color: var(--gray-600); line-height: 1.5; margin-bottom: 14px; padding: 10px 13px; background: var(--primary-bg); border-radius: 8px; border-left: 3px solid var(--primary-light); }
+
+.options-list { display: flex; flex-direction: column; gap: 8px; }
+.option-btn { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: var(--radius-sm); border: 2px solid var(--gray-200); background: var(--white); cursor: pointer; transition: var(--transition); text-align: left; font-family: 'Pretendard Variable', Pretendard, sans-serif; width: 100%; font-size: 14px; line-height: 1.5; color: var(--gray-800); }
+.option-btn:hover { border-color: var(--primary-light); background: var(--primary-bg); }
+.option-btn.selected { border-color: var(--primary); background: var(--primary-bg); color: var(--primary-dark); font-weight: 600; box-shadow: 0 0 0 3px var(--primary-glow); }
+.option-num { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; background: var(--gray-100); color: var(--gray-600); transition: var(--transition); }
+.option-btn.selected .option-num { background: var(--primary); color: white; }
+
+.likert-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.likert-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 4px; border-radius: var(--radius-sm); border: 2px solid var(--gray-200); background: var(--white); cursor: pointer; transition: var(--transition); font-family: 'Pretendard Variable', Pretendard, sans-serif; }
+.likert-btn:hover { border-color: var(--primary-light); }
+.likert-btn.selected { border-color: var(--primary); background: var(--primary-bg); box-shadow: 0 0 0 3px var(--primary-glow); }
+.likert-btn .emoji { font-size: 26px; }
+.likert-btn .score { font-size: 11px; font-weight: 600; color: var(--gray-400); }
+.likert-btn.selected .score { color: var(--primary); }
+
+.result-hero { text-align: center; padding: 32px 20px; background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 50%, #4a8ab5 100%); border-radius: var(--radius); color: white; margin-bottom: 20px; position: relative; overflow: hidden; }
+.result-hero::before { content:''; position:absolute; top:-50%; right:-30%; width:200px; height:200px; border-radius:50%; background: rgba(255,255,255,0.1); }
+.result-hero::after { content:''; position:absolute; bottom:-40%; left:-20%; width:150px; height:150px; border-radius:50%; background: rgba(59,130,196,0.15); }
+.result-hero > * { position: relative; z-index: 1; }
+.result-hero .level-emoji { font-size: 52px; margin-bottom: 10px; display:block; }
+.result-hero h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+.result-hero p { font-size: 14px; opacity: 0.95; }
+.score-pill { display: inline-block; padding: 6px 20px; border-radius: 20px; background: rgba(255,255,255,0.22); font-size: 18px; font-weight: 800; margin-top: 12px; backdrop-filter: blur(10px); }
+
+.chart-container { background: var(--white); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow-sm); text-align: center; border: 1px solid rgba(30,58,95,0.08); }
+.chart-container h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--gray-800); }
+.chart-container canvas { max-height: 320px; }
+
+.char-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.char-card { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: var(--radius-sm); background: var(--white); box-shadow: var(--shadow-sm); border-left: 4px solid var(--primary); border-top: 1px solid rgba(30,58,95,0.06); border-right: 1px solid rgba(30,58,95,0.06); border-bottom: 1px solid rgba(30,58,95,0.06); }
+.char-card.strength { border-left-color: var(--accent); }
+.char-card.growth { border-left-color: var(--warning); }
+.char-card .char-emoji { font-size: 34px; flex-shrink:0; }
+.char-card .char-info { flex:1; }
+.char-card .char-name { font-size: 14px; font-weight: 700; color: var(--gray-800); }
+.char-card .char-score { font-size: 12px; font-weight: 600; color: var(--primary); margin-top: 2px; }
+.char-card .char-msg { font-size: 13px; color: var(--gray-600); margin-top: 4px; line-height: 1.5; }
+
+.section-label { font-size: 14px; font-weight: 700; color: var(--gray-800); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--gray-900); color: white; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 500; z-index: 9999; transition: transform 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.part-divider { text-align: center; padding: 22px 20px; margin: 8px 0 16px; background: linear-gradient(135deg, var(--primary-bg), #d5e3f2); border-radius: var(--radius); border: 2px dashed var(--primary-light); }
+.part-divider h3 { font-size: 17px; font-weight: 800; color: var(--primary-dark); margin-bottom: 4px; }
+.part-divider p { font-size: 13px; color: var(--gray-600); }
+
+/* 푸터 */
+.site-footer { background-color: #0f1d2f; color: #7da8d4; padding: 24px 0; margin-top: 40px; }
+
+@media (max-width: 420px) {
+  .container { padding: 72px 10px 30px; }
+  .q-card { padding: 18px 14px; }
+  .likert-grid { gap: 4px; }
+  .likert-btn { padding: 8px 2px; }
+  .likert-btn .emoji { font-size: 22px; }
+  .school-level-grid { gap: 6px; }
+  .level-btn { padding: 12px 4px; }
+  .level-btn .emoji { font-size: 22px; }
+  .level-btn .label { font-size: 11px; }
+  .level-btn .sub { font-size: 9px; }
+  .msecm-text { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- 네비게이션 -->
+<nav class="top-nav">
+  <div class="top-nav-inner">
+    <a href="./index.html" target="_blank"><img src="./logo.png" alt="MSECM" style="height:36px;width:auto;" /></a>
+    <span style="font-size:14px;font-weight:700;color:#1e3a5f;">AI·디지털 역량 진단</span>
+  </div>
+</nav>
+
+<div class="blob-bg"></div>
+
+<div class="container">
+  <!-- ════════ SCREEN 1: 시작 ════════ -->
+  <div id="screen-start" class="screen active">
+    <div class="header">
+      <div class="msecm-logo">
+        <div class="msecm-icon">
+          <svg viewBox="0 0 36 36" fill="none">
+            <circle cx="11" cy="10" r="4" fill="white" opacity="0.95"/>
+            <circle cx="25" cy="10" r="4" fill="white" opacity="0.85"/>
+            <path d="M4 30 Q4 20 11 20 Q15 20 18 24 Q21 20 25 20 Q32 20 32 30 Z" fill="white" opacity="0.95"/>
+          </svg>
+        </div>
+        <div class="msecm-text-wrap">
+          <div class="msecm-tag">Glocal Education Group</div>
+          <div class="msecm-text">MSECM</div>
+        </div>
+      </div>
+      <h1><em>AI·디지털</em> 역량 진단</h1>
+      <p>MSECM AI·디지털 역량 진단 시스템</p>
+      <div class="badge-row">
+        <span class="badge gne">📘 MSECM 역량체계</span>
+        <span class="badge">🧠 7영역 프로필</span>
+        <span class="badge sky">📊 맞춤 리포트</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">👥 대상 선택</div>
+      <div class="school-level-grid">
+        <div class="level-btn" data-level="elementary" onclick="selectLevel(this)">
+          <div class="emoji">🌱</div><div class="label">초등</div><div class="sub">1~6학년</div>
+        </div>
+        <div class="level-btn" data-level="middle" onclick="selectLevel(this)">
+          <div class="emoji">🌿</div><div class="label">중학교</div><div class="sub">1~3학년</div>
+        </div>
+        <div class="level-btn" data-level="high" onclick="selectLevel(this)">
+          <div class="emoji">🌳</div><div class="label">고등</div><div class="sub">1~3학년</div>
+        </div>
+        <div class="level-btn" data-level="teacher" onclick="selectLevel(this)">
+          <div class="emoji">👩‍🏫</div><div class="label">교사</div><div class="sub">교원용</div>
+        </div>
+      </div>
+
+      <div id="form-student" style="display:none">
+        <div class="form-group">
+          <label class="form-label">📍 지역 (시·도)</label>
+          <select id="sel-region" class="form-select">
+            <option value="">시·도를 선택하세요</option>
+            <option value="경상남도" selected>경상남도</option>
+            <option value="서울특별시">서울특별시</option><option value="부산광역시">부산광역시</option><option value="대구광역시">대구광역시</option><option value="인천광역시">인천광역시</option><option value="광주광역시">광주광역시</option><option value="대전광역시">대전광역시</option><option value="울산광역시">울산광역시</option><option value="세종특별자치시">세종특별자치시</option><option value="경기도">경기도</option><option value="강원특별자치도">강원특별자치도</option><option value="충청북도">충청북도</option><option value="충청남도">충청남도</option><option value="전북특별자치도">전북특별자치도</option><option value="전라남도">전라남도</option><option value="경상북도">경상북도</option><option value="제주특별자치도">제주특별자치도</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">📚 학년</label>
+          <select id="sel-grade" class="form-select"><option value="">학년을 선택하세요</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">🏫 학교 이름 <span style="font-weight:400;color:var(--gray-400)">(선택)</span></label>
+          <input id="inp-school" class="form-input" type="text" placeholder="예: OO초등학교" maxlength="30">
+        </div>
+        <div class="form-group">
+          <label class="form-label">😊 이름 (별명도 OK)</label>
+          <input id="inp-name" class="form-input" type="text" placeholder="이름을 입력하세요" maxlength="20">
+        </div>
+      </div>
+
+      <div id="form-teacher" style="display:none">
+        <div class="form-group">
+          <label class="form-label">📍 지역 (시·도)</label>
+          <select id="sel-region-t" class="form-select"><option value="경상남도" selected>경상남도</option><option value="기타">기타</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">🏫 학교급</label>
+          <select id="sel-schoollvl-t" class="form-select"><option value="">학교급을 선택하세요</option><option value="초등">초등학교</option><option value="중학교">중학교</option><option value="고등학교">고등학교</option><option value="특수">특수학교</option><option value="기타">기타 기관</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">🏫 소속 학교 <span style="font-weight:400;color:var(--gray-400)">(선택)</span></label>
+          <input id="inp-school-t" class="form-input" type="text" placeholder="예: OO초등학교" maxlength="30">
+        </div>
+        <div class="form-group">
+          <label class="form-label">⏱️ 교직 경력</label>
+          <select id="sel-career-t" class="form-select"><option value="">경력을 선택하세요</option><option value="0-4">5년 미만</option><option value="5-9">5~9년</option><option value="10-19">10~19년</option><option value="20+">20년 이상</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">😊 성함</label>
+          <input id="inp-name-t" class="form-input" type="text" placeholder="이름을 입력하세요" maxlength="20">
+        </div>
+      </div>
+
+      <button id="btn-start" class="btn btn-primary" onclick="startDiagnosis()" disabled>진단 시작하기 🚀</button>
+    </div>
+    <div style="text-align:center; font-size:11px; color:var(--gray-400); margin-top:12px;">MSECM · Glocal Education Group · AI·디지털 역량 진단</div>
+  </div>
+
+  <!-- ════════ SCREEN 2: 진단 ════════ -->
+  <div id="screen-quiz" class="screen">
+    <div class="progress-container">
+      <div class="progress-info">
+        <span id="progress-label">Part 1: 시나리오 진단</span>
+        <span id="progress-count">1 / 30</span>
+      </div>
+      <div class="progress-bar-track"><div id="progress-fill" class="progress-bar-fill" style="width:0%"></div></div>
+    </div>
+    <div id="quiz-area"></div>
+    <div style="display:flex; gap:10px; margin-top:16px;">
+      <button id="btn-prev" class="btn btn-outline btn-sm" onclick="prevQuestion()" style="flex:1; display:none;">← 이전</button>
+      <button id="btn-next" class="btn btn-primary btn-sm" onclick="nextQuestion()" style="flex:2;" disabled>다음 →</button>
+    </div>
+  </div>
+
+  <!-- ════════ SCREEN 3: 결과 ════════ -->
+  <div id="screen-result" class="screen">
+    <div id="result-area"></div>
+  </div>
+</div>
+
+<!-- 푸터 -->
+<footer class="site-footer">
+  <div style="max-width:680px;margin:0 auto;padding:0 16px;text-align:center;font-size:12px;">
+    <p style="margin-bottom:8px;color:#adc8e5;">MSECM · Glocal Education Group</p>
+    <p style="color:#4a8ab5;">TEL: 055-715-8854 · yeajin@msecm.co.kr</p>
+    <p style="color:#4a8ab5;margin-top:4px;">© 2026 MSECM. All rights reserved.</p>
+  </div>
+</footer>
+
+<div id="toast" class="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+// Firebase (원본 그대로)
+// ══════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyC-Lf-_IfvIxO8hD4fT72ABGVHNBmDUtug",
+  authDomain: "mindterrific.firebaseapp.com",
+  databaseURL: "https://mindterrific-default-rtdb.firebaseio.com",
+  projectId: "mindterrific",
+  storageBucket: "mindterrific.firebasestorage.app",
+  messagingSenderId: "385239572828",
+  appId: "1:385239572828:web:e6a1b3734d70ca7f0ba199",
+  measurementId: "G-JMZNTX6ZLE"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const DOMAINS = {
+  A: { name: "AI·디지털 기반 교육 이해", char: "디지털 탐구력", emoji: "🔍", tag: "AI·디지털 기술의 기초 이해와 목적에 맞는 활용" },
+  B: { name: "AI·디지털 윤리와 책임", char: "윤리·책임감", emoji: "🛡️", tag: "안전하고 윤리적인 디지털 생활 실천" },
+  C: { name: "데이터와 정보 활용", char: "정보 판별력", emoji: "🧐", tag: "비판적 데이터 검증 및 정보 활용" },
+  D: { name: "AI·디지털 기반 소통과 협업", char: "소통·협업력", emoji: "🤝", tag: "디지털 도구 활용 협력적 소통" },
+  E: { name: "AI·디지털 기반 창작과 표현", char: "창의적 표현력", emoji: "🎨", tag: "디지털 도구 활용 창의적 결과물 창작" },
+  F: { name: "AI·디지털 기반 문제해결", char: "문제해결력", emoji: "🧩", tag: "컴퓨팅 사고와 AI 도구 활용 문제 해결" },
+  G: { name: "미래 설계와 자기 성장", char: "미래 설계력", emoji: "🌟", tag: "변화하는 미래와 나다운 비전 설정" }
+};
+const STRENGTH_MSG = { A:"AI·디지털 기술의 원리를 이해하고, 목적에 맞는 도구를 선택해 활용할 수 있어요.", B:"개인정보·저작권·디지털 예절 등 윤리 원칙을 잘 실천하고 있어요.", C:"정보의 진위를 가려내고, AI 환각이나 편향을 비판적으로 검증할 수 있어요.", D:"디지털 환경에서 효과적으로 소통하고, 협업 도구로 함께 성과를 만들어요.", E:"자신의 아이디어를 중심에 두고, AI를 도구로 활용해 창의적 결과물을 만들어요.", F:"문제를 체계적으로 분해하고, 논리적 사고와 AI 도구로 해결 방안을 찾을 수 있어요.", G:"AI 시대의 변화를 이해하고, 나다운 비전과 성장 방향을 주도적으로 설계해요." };
+const GROWTH_MSG = { A:"💡 AI 작동 원리와 다양한 도구를 하나씩 탐색해 보세요!", B:"💡 개인정보·저작권 지키는 습관을 만들고, 디지털 예절을 실천해 보세요!", C:"💡 \"정말일까?\" 확인하는 습관과 출처 비교가 첫걸음이에요.", D:"💡 온라인 협업에서 역할을 나누고 상대 의견을 경청해 보세요!", E:"💡 AI는 보조 도구로 쓰고, 내 생각과 아이디어로 직접 만들어 보세요!", F:"💡 큰 문제는 작은 단계로 나누고 순서를 정해 해결해 보세요!", G:"💡 내 강점과 AI 시대에 필요한 역량을 함께 탐색해 보세요!" };
+
+const TEACHER_DOMAINS = { A:{name:"AI·디지털 기반 교육 이해",char:"교육 이해력",emoji:"📘",tag:"기본 · 교육 본질과 실천 탐색"}, B:{name:"윤리적 실천",char:"윤리 실천력",emoji:"🛡️",tag:"기본 · 교육에서의 윤리적 활용과 성찰"}, C:{name:"수업 및 학습자 분석",char:"학습자 이해력",emoji:"🔬",tag:"교육실천 · 데이터 기반 학습자 분석"}, D:{name:"교수학습 및 평가 설계",char:"수업 설계력",emoji:"📝",tag:"교육실천 · AI 기반 수업·평가 설계"}, E:{name:"교수학습 실행",char:"수업 실행력",emoji:"🎯",tag:"교육실천 · 학생 참여 수업 실행"}, F:{name:"평가 실행",char:"평가 환류력",emoji:"📊",tag:"교육실천 · 과정중심평가와 환류"}, G:{name:"교사 전문성 개발",char:"전문성 성장력",emoji:"🌱",tag:"교사 전문성 · 지속적 성장과 협력"} };
+const T_STRENGTH_MSG = { A:"AI·디지털 기반 교육의 본질과 필요성을 잘 이해하고, 교육 실천에 대한 가치관이 정립되어 있어요.", B:"교육 현장에서 AI·디지털 윤리 원칙을 체화하여 실천하고, 지속적으로 성찰하세요.", C:"데이터 기반으로 학습자를 다각도로 분석하고, 인지·정서적 성장을 종합적으로 이해해요.", D:"AI·디지털 도구를 활용해 수업과 평가를 체계적으로 설계하고 타당성을 점검할 수 있어요.", E:"학생 참여를 이끄는 AI 기반 수업을 실천하고, 실천을 성찰하며 개선하고 있어요.", F:"과정중심평가를 AI로 지원하고, 평가 결과를 교수·학습에 효과적으로 환류하고 있어요.", G:"자신의 전문성 영역을 명확히 파악하고 동료와 협력하며 지속적으로 성장하고 있어요." };
+const T_GROWTH_MSG = { A:"💡 AI·디지털 교육 관련 도서·연수로 교육 본질에 대한 관점을 정립해 보세요.", B:"💡 학급의 AI 활용 원칙을 학생과 함께 세우고, 사례를 성찰해 보세요.", C:"💡 학습 데이터를 해석하는 간단한 루틴(주간 리뷰 등)부터 시작해 보세요.", D:"💡 한 차시부터 AI 도구를 활용한 수업·평가 설계를 실습해 보세요.", E:"💡 수업나눔이나 전문적학습공동체에서 실천 사례를 공유해 보세요.", F:"💡 AI 도구로 과정중심평가 피드백을 부분적으로 자동화해 보세요.", G:"💡 함께학교·G-DEAL 등 교원 커뮤니티에 참여해 협력적 성장을 시작해 보세요." };
+
+const QUESTIONS={elementary:{scenario:[{d:"A",q:"우리 생활에서 AI가 하고 있는 일로 가장 알맞은 것은?",hint:"AI(인공지능)란 컴퓨터가 사람처럼 생각하고 판단하는 기능이에요.",opts:["종이에 연필로 그림을 그려주는 것","유튜브에서 내가 좋아할 영상을 골라서 추천해 주는 것","운동장에서 축구공을 차는 것","교실 청소를 도와주는 것"],ans:1},{d:"A",q:"사회 시간에 \"우리 지역 특산물\"을 조사하려 해요. 가장 알맞은 방법은?",hint:"공부할 때 \"어떤 도구를 쓸까?\" 골라야 해요.",opts:["계산기 앱을 열어서 숫자를 입력한다","카메라로 교실 사진을 찍는다","인터넷 검색으로 자료를 찾는다","타이머 앱을 켜서 시간을 잰다"],ans:2},{d:"A",q:"선생님이 \"교육용 AI 학습 도구로 수학 문제를 풀어보세요\"라고 했어요. 바른 행동은?",hint:"학교에서 허락한 교육용 AI만 사용할 수 있어요.",opts:["교육용 AI 대신 다른 AI에서 답을 검색한다","선생님이 안내한 교육용 AI 수학 기능을 사용한다","친구에게 답을 물어본다","AI는 무조건 안 쓰는 게 좋다"],ans:1},{d:"B",q:"교육용 AI에게 질문할 때 절대 입력하면 안 되는 것은?",hint:"개인정보는 나를 알아볼 수 있는 정보예요.",opts:["\"광합성이 뭐야?\" 같은 과학 질문","\"3학년 2반 김OO, OO시 OO동에 살아요\" 같은 개인정보","\"공룡은 왜 멸종했어?\" 같은 궁금한 점","\"5 곱하기 7은 얼마야?\" 같은 수학 문제"],ans:1},{d:"B",q:"인터넷에서 찾은 예쁜 그림을 숙제에 쓰려고 해요. 올바른 방법은?",hint:"다른 사람이 만든 글·그림·음악에는 저작권이 있어요.",opts:["마음에 드니까 바로 복사해서 붙여 넣는다","사용이 허락된 이미지인지 확인하고 출처를 밝힌다","선생님이 안 보면 그냥 써도 된다","작게 사용하면 저작권이 안 된다"],ans:1},{d:"B",q:"단체 채팅방에서 친구 한 명을 놀리고 대화에서 빼고 있어요. 이 행동은?",hint:"온라인에서도 예의를 지켜야 해요.",opts:["재미있는 장난이니까 괜찮다","온라인이니까 현실과 달라도 된다","사이버 따돌림이며 절대 해서는 안 되는 행동이다","놀림 받는 친구가 먼저 잘못했을 것이다"],ans:2},{d:"B",q:"가장 안전한 비밀번호는?",hint:"쉬운 비밀번호는 위험해요.",opts:["내 생일 (예: 20150304)","\"1234\" 같이 간단하게","숫자·영어·특수문자 섞기 (예: Sky!72)","친한 친구와 같은 비밀번호"],ans:2},{d:"C",q:"AI가 알려준 정보에 대해 올바른 생각은?",hint:"AI도 가끔 틀린 답을 말해요(AI 환각).",opts:["인터넷 정보는 모두 사실이다","AI 답은 항상 정확하다","AI도 틀릴 수 있으니 교과서·선생님 자료로 확인한다","유명한 사이트만 보면 확인 필요 없다"],ans:2},{d:"C",q:"친구가 \"내일 학교가 휴교래!\"라고 했어요. 가장 좋은 행동은?",hint:"하나의 출처만 믿으면 거짓 정보에 속을 수 있어요.",opts:["친구 말이니까 바로 다른 친구에게 알린다","SNS에 재미로 퍼뜨린다","학교 홈페이지·선생님께 확인한 뒤 행동한다","인터넷 정보는 다 맞는다"],ans:2},{d:"C",q:"일주일간 기온을 측정한 막대그래프를 봤어요. 알 수 있는 것은?",hint:"표와 그래프는 많은 정보를 한눈에 보여줘요.",opts:["각 요일의 습도","가장 기온이 높았던/낮았던 요일","내일의 날씨 예보","비가 온 시간"],ans:1},{d:"D",q:"온라인 협업 도구를 쓸 때 지켜야 할 규칙으로 알맞지 않은 것은?",hint:"여러 사람이 함께 쓰는 도구에는 규칙이 있어요.",opts:["친구가 쓴 내용을 함부로 지우지 않는다","나만 옳다고 생각하고 친구 의견을 무시한다","모둠에서 정한 규칙을 따른다","내 생각을 쓸 때 이름을 남긴다"],ans:1},{d:"D",q:"모둠 과제로 \"우리 고장 소개\" 자료를 만들 때 효과적인 방법은?",hint:"모둠 활동에서 역할을 나누면 좋아요.",opts:["한 명이 혼자 다 하기","역할을 나누고 공유 문서에서 함께 작업","모둠원 전원이 같은 부분을 따로따로","선생님이 다 만들어 주시길 기다리기"],ans:1},{d:"D",q:"패들렛에서 \"좋아하는 계절\" 토론 중. 바른 행동은?",hint:"친구 의견도 존중해야 해요.",opts:["내 의견만 길게 쓰고 친구 것 안 읽기","마음에 안 드는 의견에 놀리는 댓글","친구 의견을 끝까지 읽고 존중하며 내 생각 나누기","구경만 하기"],ans:2},{d:"E",q:"\"나의 창작물\"이라 할 수 있는 것은?",hint:"내 아이디어가 중심이어야 진짜 내 작품이에요.",opts:["AI가 만든 글을 그대로 낸 것","친구 그림을 복사한 것","내 아이디어로 쓰고 AI로 맞춤법만 고친 글","인터넷에서 다운로드한 그림"],ans:2},{d:"E",q:"과학 발표 자료를 만들 때 바른 순서는?",hint:"순서가 중요해요.",opts:["예쁜 그림부터 넣고 내용은 나중","내용 정리 → 핵심을 슬라이드에 → 알맞은 사진 넣기","AI에게 \"다 만들어 줘\"","친구 자료 복사"],ans:1},{d:"E",q:"학교 행사 사진으로 영상을 만들 때 꼭 확인할 것은?",hint:"다른 사람이 나온 사진은 허락이 필요해요.",opts:["사진이 예쁜지","사진에 나온 친구들의 허락","배경 음악","영상 길이"],ans:1},{d:"F",q:"학교 축제 준비. \"문제 분해\"를 올바르게 한 것은?",hint:"큰 문제를 작은 문제로 나누는 것이 문제 분해예요.",opts:["\"축제 준비!\" 한꺼번에 시작","①역할 정하기 → ②물건 준비 → ③장소 꾸미기 → ④리허설","선생님이 다 해주시길","제일 재미있는 것부터"],ans:1},{d:"F",q:"엔트리에서 캐릭터가 \"안녕!\" 말한 뒤 오른쪽으로 걸어가게 하려면?",hint:"블록을 순서대로 쌓아요.",opts:["걷기 → 말하기","말하기(\"안녕!\") → 걷기(오른쪽)","마우스로 끌어가기","아무 블록이나"],ans:1},{d:"G",q:"AI가 발전하면 미래는?",hint:"새로운 직업도 생겨요.",opts:["사람 할 일이 완전히 없어진다","새 직업이 생기고 공감·창의력 같은 사람의 능력이 더 중요","모든 공부가 필요 없어짐","컴퓨터만 있으면 됨"],ans:1},{d:"G",q:"AI 시대 나의 꿈을 위해 가장 좋은 태도는?",hint:"내가 잘하는 것을 알고 새로운 것을 배우는 게 중요해요.",opts:["AI가 다 해주니까 안 배워도 됨","코딩만 잘하면 성공","좋아하는 것을 찾고 필요한 것을 계속 배우기","미래는 나중에 생각"],ans:2}],likert:[{d:"A",q:"태블릿이나 컴퓨터를 사용한 뒤 \"이 도구가 내 공부에 도움이 됐나?\" 생각해 본 적이 있다."},{d:"B",q:"오늘 내가 스마트폰·태블릿을 쓴 방법이 올바랐는지 돌아본 적이 있다."},{d:"C",q:"인터넷에서 자료를 찾을 때 \"이 정보가 정말 맞을까?\" 의심해 본 적이 있다."},{d:"D",q:"모둠 활동이 끝난 후 \"나는 친구들과 잘 협력했는가?\" 돌아본다."},{d:"E",q:"작품을 만들 때 AI가 한 부분과 내가 직접 한 부분을 구분할 수 있다."},{d:"F",q:"어려운 문제를 풀고 나서 \"다른 방법도 있었을까?\" 생각해 본다."},{d:"G",q:"나의 꿈을 위해 무엇을 배울지 계획해 본 적이 있다."},{d:"B",q:"스마트폰·태블릿 사용 시간을 스스로 정하고 지키려 한다."},{d:"B",q:"게임·유튜브를 하다가 약속한 시간이 되면 스스로 멈춘다."},{d:"B",q:"온라인에서도 현실처럼 예의 바르고 책임 있게 행동하려 한다."}],grades:[1,2,3,4,5,6],gradeLabel:"학년"},middle:{scenario:[{d:"A",q:"생성형 AI가 답변을 만들어내는 기본 원리로 가장 적절한 것은?",hint:"방대한 텍스트를 학습해 다음 단어를 예측하는 방식이에요.",opts:["인터넷을 실시간 검색해 답을 복사","학습 데이터 패턴을 바탕으로 그럴듯한 답을 생성","사람처럼 감정을 느껴서 답함","정해진 답변 목록에서 고름"],ans:1},{d:"A",q:"수학 문제가 막혀서 AI에게 도움을 요청할 때 효과적인 방법은?",hint:"AI는 학습 도구입니다.",opts:["답만 알려달라고 함","풀이 과정을 단계별로 설명해달라 하고 직접 다시 풀기","AI 답을 외워서 시험 활용","그대로 옮겨 적기"],ans:1},{d:"A",q:"교사 승인 하 생성형 AI 활용 시 올바른 자세는?",hint:"비판적 검증이 필수예요.",opts:["아무 AI나 자유롭게","교사 안내 도구를 쓰고 결과를 검증","AI 답은 항상 정확","사용 사실을 밝히지 않아도 됨"],ans:1},{d:"B",q:"친구 사진을 AI 필터로 과도하게 변형해 올렸더니 친구가 속상해함. 적절한 판단은?",hint:"초상권·인격권이 있어요.",opts:["친구가 예민한 것","법적 문제 없음","타인 이미지 변형·게시는 초상권 침해 가능","비공개 계정이면 괜찮음"],ans:2},{d:"B",q:"보고서에 AI 문장을 일부 사용하며 출처 표기를 안 했다면?",hint:"투명성이 중요해요.",opts:["짧아서 괜찮음","학업 부정행위(표절)에 해당","AI는 저작권 없어서 괜찮음","친구도 다 그럼"],ans:1},{d:"B",q:"AI 챗봇에 고민·학교·친구 이름까지 말했다면?",hint:"입력 정보는 학습 데이터가 될 수 있어요.",opts:["AI는 비밀 지켜줌","개인정보가 학습 데이터로 활용될 수 있어 위험","비공개 대화라 괜찮음","AI 회사는 안 봄"],ans:1},{d:"B",q:"AI로 만든 가짜 연예인 영상(딥페이크) 공유는?",hint:"딥페이크는 법적 문제가 됩니다.",opts:["재미로 만든 것","유명인이라 초상권 없음","타인 초상 딥페이크 제작·유포는 불법 가능","친구끼리만 봤음"],ans:2},{d:"C",q:"AI가 \"독도는 분쟁 중\"이라 답했을 때 올바른 태도는?",hint:"AI는 편향될 수 있어요.",opts:["AI가 말했으니 사실","공식 자료(외교부·교과서)로 확인·편향 인식","AI에게 다시 물으면 정확","이런 질문은 금지"],ans:1},{d:"C",q:"뉴스 기사 진위 판별 방법으로 가장 효과적인 것은?",hint:"미디어 리터러시의 핵심이에요.",opts:["좋아요 수","출처·작성자 확인 후 다른 언론사와 비교","제목만","AI에게 물어봄"],ans:1},{d:"C",q:"사회 수행평가 통계 분석에 AI를 활용하는 적절한 방법은?",hint:"AI는 도구, 해석은 사람 몫이에요.",opts:["결론까지 써달라","AI로 데이터 시각화 후 해석·결론은 직접","그대로 복사","통계는 AI에 전부 맡김"],ans:1},{d:"D",q:"모둠에서 친구가 AI 생성물을 자기 것처럼 제출. 바른 대응은?",hint:"학업 정직성은 모둠 전체 책임입니다.",opts:["나만 아니면 됨","AI 사용 사실 밝히도록 권유","몰래 고발","넘어감"],ans:1},{d:"D",q:"AI 번역기로 외국 학생과 교류 시 주의점은?",hint:"문화적 맥락이 중요해요.",opts:["완벽하니 그대로","번역 검토·문화적 차이 고려 수정","내 영어가 더 정확","신경 안 써도 됨"],ans:1},{d:"D",q:"모둠 토론에서 AI 자료를 근거로 쓸 때 적절한 태도는?",hint:"출처·신뢰성 확인이 필수예요.",opts:["권위 있게 주장","출처 확인·한계 밝히며 근거 활용","항상 정확","AI 자료 금지"],ans:1},{d:"E",q:"미술 시간 AI 이미지로 작품 만들 때 '나의 창작물' 인정 조건은?",hint:"나의 창의적 기여가 핵심입니다.",opts:["AI가 만든 걸 그대로","AI 이미지 바탕으로 나만의 해석·수정 더하고 AI 활용 밝힘","프롬프트만 잘 쓰면 됨","누구 것도 아님"],ans:1},{d:"E",q:"영어 에세이를 AI 번역만으로 제출하는 것은?",hint:"자신의 능력 평가가 목적이에요.",opts:["그대로 제출","직접 영작하고 AI 참고 사실 표기","이름만 바꿔 냄","AI 절대 금지"],ans:1},{d:"E",q:"AI로 음악을 작곡해 발표할 때 적절한 태도는?",hint:"투명성이 새로운 윤리예요.",opts:["내가 작곡했다고만","AI 도구·프롬프트·수정 부분을 명확히 밝힘","저작권 없다고 말함","발표하지 않음"],ans:1},{d:"F",q:"학교 축제 웹사이트 제작의 체계적 접근은?",hint:"분해→설계→구현→검증이에요.",opts:["바로 코딩","기능 분석 → 화면 설계 → 코딩 → 테스트","AI에게 전체 코드 요청","친구 사이트 복사"],ans:1},{d:"F",q:"파이썬 오류 시 AI 코딩 도우미 활용 방법은?",hint:"AI는 디버깅 도우미예요.",opts:["전체 코드 다시 써달라","오류 메시지로 원인 파악 후 직접 수정","이해 없이 붙여넣기","포기"],ans:1},{d:"G",q:"AI 발전으로 일부 직업이 사라진다는 뉴스에 대한 균형 잡힌 시각은?",hint:"인간 고유 역량의 가치가 더 커져요.",opts:["AI가 모든 직업 대체","변화하지만 창의성·공감·비판적 사고가 더 중요","AI 무관 직업만","미래는 나중에"],ans:1},{d:"G",q:"진로 탐색에 AI를 활용하는 효과적 방법은?",hint:"AI는 도구입니다.",opts:["AI가 정해준 대로","AI로 최신 동향 조사 + 실제 직업인 인터뷰 병행","AI 추천이 가장 정확","AI는 쓸모없음"],ans:1}],likert:[{d:"A",q:"AI의 작동 원리(데이터 학습, 패턴 인식 등)를 다른 사람에게 설명할 수 있다."},{d:"B",q:"AI 사용 시 개인정보 보호와 저작권을 스스로 지키려 노력한다."},{d:"C",q:"온라인 정보를 볼 때 출처와 신뢰성을 꼼꼼히 확인하는 편이다."},{d:"D",q:"온라인 협업 도구에서 상대방 의견을 존중하며 소통한다."},{d:"E",q:"AI 활용 콘텐츠 제작 시 내 기여와 AI 생성 부분을 구분할 수 있다."},{d:"F",q:"문제 해결 시 여러 방법을 비교해 효율적인 방법을 찾는다."},{d:"G",q:"AI 시대에 필요한 역량을 고민하고 준비하려 한다."},{d:"B",q:"디지털 기기 사용 시간을 스스로 조절한다."},{d:"B",q:"온라인 불쾌 콘텐츠에 대해 신고·차단할 수 있다."},{d:"B",q:"디지털 공간에서도 현실과 같은 윤리 기준을 적용한다."}],grades:[1,2,3],gradeLabel:"학년"},high:{scenario:[{d:"A",q:"LLM이 '환각(hallucination)' 현상을 보이는 근본 원인은?",hint:"통계적 패턴 기반 생성이에요.",opts:["인터넷 끊김","학습 패턴 기반 생성이지만 사실 여부를 검증하지 못함","프로그래밍 버그","질문 오류"],ans:1},{d:"A",q:"AI 디지털교과서 '적응형 학습'의 의미는?",hint:"학생 맞춤 학습 경로예요.",opts:["모두에게 같은 문제","학생 수준·패턴 분석 맞춤 경로 제공","교과서 읽어줌","답안 자동 작성"],ans:1},{d:"A",q:"프롬프트 엔지니어링에서 '맥락→역할→지시→출력형식' 순서의 이유는?",hint:"구조화가 품질을 높입니다.",opts:["그 순서만 이해함","구조화가 출력 품질·관련성을 높임","순서 무관","회사 규칙"],ans:1},{d:"B",q:"수행평가 보고서 AI 활용 시 올바른 출처 표기는?",hint:"도구명·프롬프트·방식·일시가 필요해요.",opts:["표기 불필요","AI 도구명·프롬프트·활용 방식·일시 명시","'AI 사용'만","안 쓰면 됨"],ans:1},{d:"B",q:"AI 생성 텍스트를 그대로 자기 보고서로 제출하는 것은?",hint:"학업 정직성 문제예요.",opts:["효율적 학습","표절 아님","학업 부정행위로 제재 가능","출처만 밝히면 됨"],ans:2},{d:"B",q:"'인지적 잔여물 테스트'를 적용한다면?",hint:"AI 없이도 설명할 수 있는지 점검해요.",opts:["AI 보고서 + 발표만 잘","AI 없이도 직접 설명 가능한 수준까지 이해","과학 용어일 뿐","AI 아예 안 씀"],ans:1},{d:"B",q:"AI 생성 이미지 포트폴리오 주의점은?",hint:"저작권이 불명확해요.",opts:["저작권 문제없음","저작권 불명확·학습 데이터 침해 가능성 고려","프롬프트 작성자가 저작권자","유료면 보장"],ans:1},{d:"C",q:"AI 생성 참고문헌 목록 검증 방법은?",hint:"존재하지 않는 논문을 만들기도 해요.",opts:["그대로 사용","학술 DB에서 실제 존재 확인","제목이 그럴듯하면 됨","저자만 검색"],ans:1},{d:"C",q:"AI 역사 서술 편향을 검증하는 방법은?",hint:"교차검증이 핵심이에요.",opts:["AI 답변 하나만","다양한 사료·학술 자료로 교차검증","영어로 물으면 편향 없음","최신 AI는 편향 없음"],ans:1},{d:"C",q:"AI 추천 알고리즘 '필터 버블' 문제의 올바른 이해는?",hint:"다양한 관점 접근이 제한돼요.",opts:["좋은 서비스","사용자 선호 정보만 제공해 다양한 관점 접근을 제한","SNS만 해당","최신 AI엔 없음"],ans:1},{d:"D",q:"팀 프로젝트 AI 공동 활용 사전 합의 사항은?",hint:"투명성·공정성이 중요해요.",opts:["각자 알아서","활용 범위·출처 표기·역할 분담 기준 사전 합의","잘 쓰는 사람이 전부","AI 금지"],ans:1},{d:"D",q:"다문화 교류 AI 번역 활용 유의점은?",hint:"문화적 맥락을 놓칠 수 있어요.",opts:["번역만으로 완벽","번역 검토 + 문화적 맥락 직접 보완","기계가 더 정확","어색해도 이해할 것"],ans:1},{d:"D",q:"학급 의사결정 AI 분석 결과 활용 시 주의점은?",hint:"가치 판단은 인간 몫이에요.",opts:["그대로 따름","참고자료로 활용하되 구성원 토론 후 최종 결정","갈등 없어짐","신뢰할 수 없음"],ans:1},{d:"E",q:"국어 논술 수행평가 AI 활용 적절 수준은?",hint:"5단계 스펙트럼이 있어요.",opts:["AI가 전체 작성","자료 탐색 AI 활용, 작성은 직접, 활용 표기","AI 절대 금지","AI 초안 약간 수정"],ans:1},{d:"E",q:"과학 실험 보고서 AI 활용 범위는?",hint:"과학적 사고 과정은 AI가 대행 못 해요.",opts:["전체 보고서 의뢰","데이터 시각화 AI, 관찰·분석·결론은 직접","AI 결론 그대로","AI 금지"],ans:1},{d:"E",q:"학생부 탐구활동 AI 활용 시 중요한 점은?",hint:"주체적 성장이 핵심입니다.",opts:["숨기는 것이 유리","AI 활용과 나의 사고·성장이 어떻게 나타났는지","많이 쓸수록 좋음","불리함"],ans:1},{d:"F",q:"사회 문제 해결 프로젝트 AI 활용 체계적 접근은?",hint:"데이터 기반 프로세스예요.",opts:["해결책 질문","문제정의 → 데이터수집 → AI 분석 → 해석 → 해결안","의견만 묻기","AI 사용 불가"],ans:1},{d:"F",q:"AI 코딩 도구 학습 효과 극대화 방법은?",hint:"알고리즘 이해는 스스로 해요.",opts:["그대로 사용","코드 참고·각 줄 로직 이해·직접 변형","알고리즘 공부 불필요","도구 안 씀"],ans:1},{d:"G",q:"AI 시대 '대체 불가능한 인간 역량'은?",hint:"인간 고유 역량의 가치가 커져요.",opts:["반복 데이터 처리","공감·윤리적 판단·창의적 문제 정의","빠른 계산","정보 암기"],ans:1},{d:"G",q:"진로 분야 AI 영향 분석의 균형 잡힌 접근은?",hint:"대체와 증강을 함께 봐요.",opts:["AI 대체 직업 회피","어떤 업무 자동화·어떤 역량 필요한지 분석","AI 무관 분야만","상관없음"],ans:1}],likert:[{d:"A",q:"생성형 AI의 작동 원리와 한계를 다른 사람에게 설명할 수 있다."},{d:"B",q:"AI 활용 시 출처 표기, 저작권, 개인정보 원칙을 일관되게 지킨다."},{d:"C",q:"AI가 준 정보의 편향성과 오류 가능성을 비판적으로 검토한다."},{d:"D",q:"팀 프로젝트에서 AI 활용 기준을 팀원과 합의·공유한다."},{d:"E",q:"AI 활용 창작물에서 나의 고유한 기여를 구분할 수 있다."},{d:"F",q:"복잡한 문제를 구조화하고 AI를 도구로 활용해 체계적으로 해결한다."},{d:"G",q:"AI가 내 진로 분야를 어떻게 변화시키는지 주기적으로 탐색한다."},{d:"B",q:"디지털 기기·AI 도구 과의존을 피하고 자기 조절을 실천한다."},{d:"B",q:"온라인 불공정·유해 상황에 적극 대응한다."},{d:"B",q:"디지털 공간에서의 내 행동이 사회에 미치는 영향을 인식한다."}],grades:[1,2,3],gradeLabel:"학년"},teacher:{scenario:[{d:"A",q:"'AI·디지털 기반 교육'의 본질에 대한 가장 균형 잡힌 관점은?",hint:"기술은 수단, 학생 성장이 목적입니다.",opts:["AI 도구 숙련이 가장 중요하다","기술은 수단이고 학생의 주체적 성장을 지원하는 것이 핵심이다","전통 수업을 전면 대체해야 한다","디지털 역량이 없는 교사는 경쟁력이 없다"],ans:1},{d:"A",q:"2022 개정 교육과정과 AI·디지털 기초소양 교육의 관계는?",hint:"기초소양은 국어·수학처럼 모든 교과의 기반입니다.",opts:["정보 교과에서만 다루는 별도 영역","국어·수학처럼 모든 교과 학습의 기반이 되는 기초소양","창의적 체험활동 전용","방과후 선택 영역"],ans:1},{d:"A",q:"동료 교사가 \"AI 도구가 너무 많아 어디서부터 시작할지 모르겠다\"고 할 때 가장 적절한 조언은?",hint:"수업 목표가 먼저입니다.",opts:["가장 인기 있는 도구부터","수업 목표를 먼저 정하고 그에 맞는 도구를 선택","모든 도구를 순서대로","유료 도구가 효과적"],ans:1},{d:"B",q:"학생 학습 데이터를 생성형 AI에 입력해 분석을 요청하려 할 때 가장 적절한 방식은?",hint:"개인정보 보호가 최우선입니다.",opts:["편리하니 그대로 입력","학생 식별 정보를 제거·익명화한 후 활용","암호화했다 주장","부모 동의만 있으면 OK"],ans:1},{d:"B",q:"AI가 생성한 수업 자료를 학급에 배포할 때 교사의 책임 범위는?",hint:"최종 검증은 교사의 몫입니다.",opts:["AI가 만들었으니 책임 없음","내용 정확성·편향성·학급 맥락 적합성을 교사가 검증","학생이 직접 판단하도록","출처만 표기"],ans:1},{d:"B",q:"학생이 과제에 생성형 AI를 사용한 정황을 발견했을 때 교육적으로 적절한 대응은?",hint:"처벌보다 학습 기회로 전환합니다.",opts:["즉시 징계","AI 활용 원칙과 학업 정직성을 함께 지도하고 재작성 기회 제공","없던 일로","모든 AI 사용 금지"],ans:1},{d:"B",q:"학급에 AI 활용 규칙을 도입할 때 가장 적절한 방식은?",hint:"자율과 참여가 핵심이에요.",opts:["교사가 일방 통보","학생과 함께 규칙을 세우고 정기적으로 점검·개정","학교 규정 그대로 붙임","학부모가 결정"],ans:1},{d:"C",q:"학습 데이터(형성평가·활동 기록 등)를 해석할 때 가장 주의할 점은?",hint:"수치만으로 단정하지 않습니다.",opts:["평균만 보면 됨","수치와 함께 학생 맥락·정서적 요소를 통합적으로 해석","높은 점수만 주목","낮은 점수는 무시"],ans:1},{d:"C",q:"AI 기반 학습 분석 리포트가 '학생 A는 학습 부진'으로 제시했을 때 교사의 적절한 태도는?",hint:"AI 결과는 참고 자료입니다.",opts:["리포트대로 분류","리포트를 참고하되 직접 관찰·면담으로 보완 판단","즉시 학부모 통보","무시"],ans:1},{d:"C",q:"학급 내 디지털 격차를 파악하는 효과적인 방법은?",hint:"가정 환경·접근성도 함께 봐야 해요.",opts:["성적표만 확인","접근성·활용 빈도·가정 환경까지 통합 진단","자진 신고","격차는 없음"],ans:1},{d:"D",q:"한 차시 수업에 AI 도구를 도입할 때 가장 효과적인 설계 순서는?",hint:"목표→AI 역할→학생 활동→평가 순서입니다.",opts:["도구부터 선택","학습 목표 → AI 역할 정의 → 학생 활동 → 평가 계획","활동부터 구상","평가는 생략"],ans:1},{d:"D",q:"서·논술형 평가 설계 시 AI 활용의 적절한 위치는?",hint:"과정 평가가 중요합니다.",opts:["AI가 자동 채점만","초안 피드백·사고 과정 확인 등 과정 평가 보조 도구로","AI 사용 전면 금지","학생이 AI로 작성 후 제출"],ans:1},{d:"D",q:"수업 설계에서 '모든 학생의 성장'을 지원하는 AI 활용 방식은?",hint:"차별화된 접근이 필요합니다.",opts:["같은 과제 일괄","학습 수준별 차별화된 AI 지원 설계","상위 학생만 AI","AI 안 씀"],ans:1},{d:"E",q:"AI 도구를 처음 쓰는 수업에서 학생 참여를 높이는 방법은?",hint:"탐구와 질문 중심이에요.",opts:["교사 시연만","학생이 직접 실험·비교·질문하는 탐구 활동 설계","완벽한 도구만","성적 반영"],ans:1},{d:"E",q:"수업 중 AI가 예상 못한 오류 답을 냈을 때 교육적 활용 방법은?",hint:"오류 자체가 교육 자료예요.",opts:["당황해서 덮음","\"AI 환각\" 사례로 비판적 사고 교육 자료로 전환","수업 중단","학생 탓"],ans:1},{d:"F",q:"AI 기반 과정중심평가의 핵심 원칙은?",hint:"학습 과정을 지원합니다.",opts:["점수 자동 산출","학습 과정 관찰·피드백 제공·성장 지원","채점 시간 단축만","객관식만"],ans:1},{d:"F",q:"평가 결과를 AI로 분석한 후의 교사의 가장 중요한 역할은?",hint:"환류가 핵심이에요.",opts:["결과 통보","결과를 바탕으로 수업·학습 지원 방안 환류","기록만","학부모 전달"],ans:1},{d:"G",q:"AI·디지털 교사 전문성 개발에 가장 효과적인 방식은?",hint:"동료와 함께 성장해요.",opts:["혼자 연수","동료와 전문적학습공동체에서 실천·공유·성찰","교재만 읽기","유튜브만"],ans:1},{d:"G",q:"'교사만이 할 수 있는 것'에 대한 가장 적절한 인식은?",hint:"관계와 정서적 발달 지원이에요.",opts:["지식 전달","학생의 지적·사회정서적 발달을 균형 있게 지원","평가·기록","AI 도구 관리"],ans:1},{d:"G",q:"AI 시대 교사 역할 변화에 대한 균형 잡힌 관점은?",hint:"대체가 아닌 증강입니다.",opts:["대체될 것","AI를 도구 삼아 더 깊은 관계·학습 설계에 집중하는 역할로 진화","변화 없음","기술자 역할로"],ans:1}],likert:[{d:"A",q:"AI·디지털 기반 교육의 본질과 필요성에 대해 내 관점이 정립되어 있다."},{d:"B",q:"수업과 업무에서 AI·디지털 윤리 원칙(개인정보·저작권·편향)을 일관되게 지킨다."},{d:"C",q:"학습 데이터를 해석할 때 수치와 함께 학생의 맥락을 통합적으로 본다."},{d:"D",q:"학습 목표에 맞춰 AI 도구의 역할을 정하고 수업·평가를 설계할 수 있다."},{d:"E",q:"학생 참여형 AI 활용 수업을 실천하고 실행 후 성찰하는 편이다."},{d:"F",q:"AI를 활용한 과정중심평가 결과를 수업 개선에 환류하고 있다."},{d:"G",q:"AI·디지털 관련 전문성 개발 계획을 세우고 지속적으로 실천하고 있다."},{d:"B",q:"학생 데이터·생성물을 AI에 입력할 때 익명화·보안 조치를 실천한다."},{d:"A",q:"기술보다 학생의 성장이 먼저라는 원칙을 수업 실천에서 지킨다."},{d:"G",q:"동료와 전문적학습공동체·수업나눔에 참여해 실천을 공유한다."}],grades:[],gradeLabel:""}};
+
+const LIKERT_LABELS=[{emoji:"😟",text:"전혀\n아니다",score:1},{emoji:"😕",text:"별로\n아니다",score:2},{emoji:"😐",text:"보통\n이다",score:3},{emoji:"😊",text:"대체로\n그렇다",score:4},{emoji:"😆",text:"매우\n그렇다",score:5}];
+
+let state={level:null,region:'',school:'',grade:'',name:'',career:'',currentQ:0,answers:[],totalQ:30};
+function getDomainSet(){return state.level==='teacher'?TEACHER_DOMAINS:DOMAINS;}
+function getStrengthMsg(){return state.level==='teacher'?T_STRENGTH_MSG:STRENGTH_MSG;}
+function getGrowthMsg(){return state.level==='teacher'?T_GROWTH_MSG:GROWTH_MSG;}
+
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+function goHome(){state={level:null,region:'',school:'',grade:'',name:'',career:'',currentQ:0,answers:[],totalQ:30};document.querySelectorAll('.level-btn').forEach(b=>b.classList.remove('active'));document.getElementById('form-student').style.display='none';document.getElementById('form-teacher').style.display='none';['inp-school','inp-name','inp-school-t','inp-name-t'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});document.getElementById('btn-start').disabled=true;showScreen('screen-start');}
+function selectLevel(el){const level=el.dataset.level;document.querySelectorAll('.level-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');state.level=level;if(level==='teacher'){document.getElementById('form-student').style.display='none';document.getElementById('form-teacher').style.display='block';}else{document.getElementById('form-student').style.display='block';document.getElementById('form-teacher').style.display='none';const selGrade=document.getElementById('sel-grade');selGrade.innerHTML='<option value="">학년을 선택하세요</option>';const qData=QUESTIONS[level];qData.grades.forEach(g=>{const o=document.createElement('option');o.value=g;o.textContent=g+qData.gradeLabel;selGrade.appendChild(o);});}checkStartReady();}
+function checkStartReady(){let ready=false;if(state.level==='teacher'){ready=document.getElementById('sel-schoollvl-t').value&&document.getElementById('sel-career-t').value&&document.getElementById('inp-name-t').value.trim();}else if(state.level){ready=document.getElementById('sel-region').value&&document.getElementById('sel-grade').value&&document.getElementById('inp-name').value.trim();}document.getElementById('btn-start').disabled=!ready;}
+['sel-region','sel-grade','sel-region-t','sel-schoollvl-t','sel-career-t'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('change',checkStartReady);});
+['inp-school','inp-name','inp-school-t','inp-name-t'].forEach(id=>{const e=document.getElementById(id);if(e)e.addEventListener('input',checkStartReady);});
+
+function startDiagnosis(){if(state.level==='teacher'){state.region=document.getElementById('sel-region-t').value;state.school=(document.getElementById('inp-school-t').value||'').trim();state.grade=document.getElementById('sel-schoollvl-t').value;state.career=document.getElementById('sel-career-t').value;state.name=document.getElementById('inp-name-t').value.trim();}else{state.region=document.getElementById('sel-region').value;state.school=(document.getElementById('inp-school').value||'').trim();state.grade=document.getElementById('sel-grade').value;state.name=document.getElementById('inp-name').value.trim();}state.currentQ=0;const qSet=QUESTIONS[state.level];state.scenarioQs=qSet.scenario;state.likertQs=qSet.likert;state.totalQ=qSet.scenario.length+qSet.likert.length;state.answers=new Array(state.totalQ).fill(null);showScreen('screen-quiz');renderQuestion();}
+
+function renderQuestion(){const idx=state.currentQ;const total=state.totalQ;const sLen=state.scenarioQs.length;const isLikert=idx>=sLen;const qData=isLikert?state.likertQs[idx-sLen]:state.scenarioQs[idx];const domains=getDomainSet();const domain=domains[qData.d]||domains['A'];document.getElementById('progress-label').textContent=isLikert?'Part 2: 자기 성찰':'Part 1: 시나리오 진단';document.getElementById('progress-count').textContent=(idx+1)+' / '+total;document.getElementById('progress-fill').style.width=((idx+1)/total*100)+'%';document.getElementById('btn-prev').style.display=idx>0?'block':'none';const btnNext=document.getElementById('btn-next');btnNext.textContent=idx===total-1?'결과 보기 🎉':'다음 →';btnNext.disabled=state.answers[idx]===null;let html='';if(idx===0){html+='<div class="part-divider"><h3>📝 Part 1: 시나리오 진단</h3><p>'+sLen+'문항 · 가장 적절한 답을 골라주세요</p></div>';}if(idx===sLen){html+='<div class="part-divider"><h3>💭 Part 2: 자기 성찰</h3><p>'+state.likertQs.length+'문항 · 정답은 없습니다. 솔직하게 체크하세요</p></div>';}html+='<div class="q-card">';html+='<div class="q-number">'+domain.emoji+' '+domain.char+' <span class="domain-tag">'+domain.name+'</span></div>';html+='<div class="q-text">Q'+(idx+1)+'. '+qData.q+'</div>';if(!isLikert&&qData.hint){html+='<div class="q-hint">💡 '+qData.hint+'</div>';}if(isLikert){html+='<div class="likert-grid">';LIKERT_LABELS.forEach((l,i)=>{const sel=state.answers[idx]===i?' selected':'';html+='<div class="likert-btn'+sel+'" onclick="selectAnswer('+idx+','+i+')">';html+='<span class="emoji">'+l.emoji+'</span>';html+='<span class="score">'+l.score+'점</span>';html+='</div>';});html+='</div>';}else{html+='<div class="options-list">';qData.opts.forEach((opt,i)=>{const sel=state.answers[idx]===i?' selected':'';const nums=['①','②','③','④'];html+='<button class="option-btn'+sel+'" onclick="selectAnswer('+idx+','+i+')">';html+='<span class="option-num">'+nums[i]+'</span>';html+='<span>'+opt+'</span>';html+='</button>';});html+='</div>';}html+='</div>';document.getElementById('quiz-area').innerHTML=html;}
+
+function selectAnswer(qIdx,val){state.answers[qIdx]=val;renderQuestion();}
+function nextQuestion(){if(state.answers[state.currentQ]===null)return;if(state.currentQ<state.totalQ-1){state.currentQ++;renderQuestion();window.scrollTo({top:0,behavior:'smooth'});}else{calculateResults();}}
+function prevQuestion(){if(state.currentQ>0){state.currentQ--;renderQuestion();window.scrollTo({top:0,behavior:'smooth'});}}
+
+function calculateResults(){const sLen=state.scenarioQs.length;const lLen=state.likertQs.length;const domains=getDomainSet();const domainQs={};Object.keys(domains).forEach(k=>domainQs[k]=[]);state.scenarioQs.forEach((q,i)=>{const d=q.d;if(domainQs[d])domainQs[d].push(i);});state.likertQs.forEach((q,i)=>{const d=q.d;const key=domainQs[d]?d:'A';domainQs[key].push(sLen+i);});const domainScores={},domainMax={};for(const[d,qs]of Object.entries(domainQs)){let score=0,max=0;qs.forEach(qi=>{if(qi<sLen){max+=1;if(state.answers[qi]===state.scenarioQs[qi].ans)score+=1;}else{max+=5;score+=(state.answers[qi]!==null?state.answers[qi]+1:1);}});domainScores[d]=score;domainMax[d]=max||1;}const domainPct={};for(const d of Object.keys(domainScores)){domainPct[d]=Math.round(domainScores[d]/domainMax[d]*100);}let p1=0;for(let i=0;i<sLen;i++)if(state.answers[i]===state.scenarioQs[i].ans)p1++;let p2Raw=0;for(let i=sLen;i<sLen+lLen;i++)p2Raw+=(state.answers[i]!==null?state.answers[i]+1:1);const p2=Math.round(p2Raw/(lLen*5)*sLen*10)/10;const totalScore=p1+p2;const totalMax=sLen*2;const totalPct=Math.round(totalScore/totalMax*100);let level,emoji,title;if(state.level==='teacher'){if(totalPct>=85){level='선도';emoji='🏆';title='AI·디지털 교육 선도 교원!';}else if(totalPct>=65){level='실천';emoji='🌈';title='균형 잡힌 실천 교원!';}else if(totalPct>=45){level='성장';emoji='🌱';title='성장하는 교원!';}else{level='입문';emoji='📘';title='AI·디지털 교육 첫걸음!';}}else{if(totalPct>=85){level='탁월';emoji='🏆';title='AI·디지털 역량 마스터!';}else if(totalPct>=65){level='우수';emoji='🌈';title='균형 잡힌 디지털 역량!';}else if(totalPct>=45){level='보통';emoji='🌱';title='성장 중인 디지털 역량!';}else{level='기초';emoji='🌱';title='디지털 역량 첫걸음!';}}const sorted=Object.keys(domainPct).sort((a,b)=>domainPct[b]-domainPct[a]);const strengths=sorted.slice(0,3);const growths=sorted.slice(-3).reverse();saveToFirebase(domainPct,totalScore,totalPct,level,p1,p2);renderResult(domainPct,totalScore,totalPct,level,emoji,title,strengths,growths,p1,p2);}
+
+async function saveToFirebase(domainPct,totalScore,totalPct,level,p1,p2){try{const data={timestamp:firebase.firestore.FieldValue.serverTimestamp(),source:'msecm',region:state.region,school:state.school||'',grade:state.level==='teacher'?state.grade:parseInt(state.grade),career:state.career||null,name:state.name,level:state.level,totalScore,totalPct,resultLevel:level,part1Score:p1,part2Score:p2,domainScores:domainPct,answers:state.answers};await db.collection('diagnosis_results_msecm').add(data);showToast('✅ 결과가 저장되었습니다!');}catch(e){console.error('Firebase save error:',e);showToast('⚠️ 저장 중 오류가 발생했습니다.');}}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
+function renderResult(domainPct,totalScore,totalPct,level,emoji,title,strengths,growths,p1,p2){const domains=getDomainSet();const sMsg=getStrengthMsg();const gMsg=getGrowthMsg();const sLen=state.scenarioQs.length;let html='';html+='<div class="result-hero">';html+='<span class="level-emoji">'+emoji+'</span>';html+='<h2>'+title+'</h2>';const levelKo={elementary:'초등학교',middle:'중학교',high:'고등학교',teacher:'교원'};html+='<p>'+state.name+'님의 '+(levelKo[state.level]||'')+' AI·디지털 역량 진단 결과</p>';html+='<div class="score-pill">'+totalScore.toFixed(1)+' / '+(sLen*2)+'점 ('+totalPct+'%)</div>';html+='</div>';html+='<div class="card" style="text-align:center">';html+='<div style="display:flex;justify-content:center;gap:20px;font-size:14px;">';html+='<div><div style="font-weight:700;color:var(--primary);font-size:20px">'+p1+'</div><div style="color:var(--gray-400)">시나리오('+sLen+'점)</div></div>';html+='<div style="width:1px;background:var(--gray-200)"></div>';html+='<div><div style="font-weight:700;color:var(--accent);font-size:20px">'+p2.toFixed(1)+'</div><div style="color:var(--gray-400)">자기성찰('+sLen+'점)</div></div>';html+='</div>';html+='<div style="margin-top:12px;padding:8px 16px;background:var(--primary-bg);border-radius:8px;font-size:13px;color:var(--primary-dark);font-weight:600">수준: '+level+' ('+totalPct+'%)</div>';html+='</div>';html+='<div class="chart-container"><h3>📊 7영역 역량 프로필</h3><canvas id="radarChart"></canvas></div>';html+='<div class="section-label">💪 나의 강점 역량</div><div class="char-cards">';strengths.forEach(d=>{const dm=domains[d];html+='<div class="char-card strength"><div class="char-emoji">'+dm.emoji+'</div><div class="char-info">';html+='<div class="char-name">'+dm.char+' · '+dm.name+'</div>';html+='<div class="char-score">'+domainPct[d]+'점</div>';html+='<div class="char-msg">'+sMsg[d]+'</div></div></div>';});html+='</div>';html+='<div class="section-label">🌱 함께 성장할 역량</div><div class="char-cards">';growths.forEach(d=>{const dm=domains[d];html+='<div class="char-card growth"><div class="char-emoji">'+dm.emoji+'</div><div class="char-info">';html+='<div class="char-name">'+dm.char+' · '+dm.name+'</div>';html+='<div class="char-score">'+domainPct[d]+'점</div>';html+='<div class="char-msg">'+gMsg[d]+'</div></div></div>';});html+='</div>';html+='<div class="card" style="text-align:center;font-size:13px;color:var(--gray-400);line-height:1.6">';if(state.level==='teacher'){html+=(state.school?state.school+' · ':'')+state.grade+' · 경력 '+state.career+'년<br>';}else{html+=(state.school?state.school+' ':'')+state.grade+'학년 · '+state.region+'<br>';}html+='진단일: '+new Date().toLocaleDateString('ko-KR');html+='</div>';html+='<button class="btn btn-outline" onclick="goHome()" style="margin-top:8px">← 처음으로 돌아가기</button>';document.getElementById('result-area').innerHTML=html;showScreen('screen-result');setTimeout(()=>{const ctx=document.getElementById('radarChart');if(ctx){new Chart(ctx,{type:'radar',data:{labels:Object.keys(domains).map(d=>domains[d].emoji+' '+domains[d].char),datasets:[{label:'역량 점수',data:Object.keys(domains).map(d=>domainPct[d]||0),backgroundColor:'rgba(30,58,95,0.15)',borderColor:'#2d6a9f',borderWidth:2.5,pointBackgroundColor:'#2d6a9f',pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:5,pointHoverRadius:7}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false}},scales:{r:{beginAtZero:true,max:100,ticks:{stepSize:25,font:{size:11},backdropColor:'transparent'},pointLabels:{font:{size:12,weight:'600',family:"'Pretendard Variable'"},color:'#334155'},grid:{color:'rgba(30,58,95,0.1)'},angleLines:{color:'rgba(30,58,95,0.1)'}}}}});}},300);}
+</script>
+</body>
+</html>
