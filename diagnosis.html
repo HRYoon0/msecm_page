@@ -226,7 +226,8 @@ body {
 .part-divider p { font-size: 13px; color: var(--gray-600); }
 
 /* 푸터 */
-.site-footer { background-color: #0f1d2f; color: #7da8d4; padding: 24px 0; margin-top: 40px; }
+.site-footer { background-color: #0f1d2f; color: #7da8d4; padding: 24px 0; margin-top: 40px; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; }
+body { padding-bottom: 100px; }
 
 @media (max-width: 420px) {
   .container { padding: 72px 10px 30px; }
@@ -259,19 +260,7 @@ body {
   <!-- ════════ SCREEN 1: 시작 ════════ -->
   <div id="screen-start" class="screen active">
     <div class="header">
-      <div class="msecm-logo">
-        <div class="msecm-icon">
-          <svg viewBox="0 0 36 36" fill="none">
-            <circle cx="11" cy="10" r="4" fill="white" opacity="0.95"/>
-            <circle cx="25" cy="10" r="4" fill="white" opacity="0.85"/>
-            <path d="M4 30 Q4 20 11 20 Q15 20 18 24 Q21 20 25 20 Q32 20 32 30 Z" fill="white" opacity="0.95"/>
-          </svg>
-        </div>
-        <div class="msecm-text-wrap">
-          <div class="msecm-tag">Glocal Education Group</div>
-          <div class="msecm-text">MSECM</div>
-        </div>
-      </div>
+      <img src="./logo.png" alt="MSECM" style="height:56px;width:auto;margin-bottom:18px;" />
       <h1><em>AI·디지털</em> 역량 진단</h1>
       <p>MSECM AI·디지털 역량 진단 시스템</p>
       <div class="badge-row">
