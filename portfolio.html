@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MSECM — 디지털 포트폴리오</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Pretendard 폰트 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
+
+  <!-- Iconify -->
+  <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+
+  <style>
+    * { word-break: keep-all; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      margin: 0;
+    }
+
+    /* 스프링 물리 트랜지션 */
+    .spring-transition {
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* 스크롤 진입 애니메이션 */
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(2rem);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .scroll-reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 뱃지 빛나는 효과 */
+    @keyframes badge-glow {
+      0%, 100% { box-shadow: 0 0 8px rgba(59, 130, 196, 0.3); }
+      50% { box-shadow: 0 0 20px rgba(59, 130, 196, 0.6), 0 0 40px rgba(59, 130, 196, 0.2); }
+    }
+    .badge-earned {
+      animation: badge-glow 2.5s ease-in-out infinite;
+    }
+
+    /* 콘페티 파티클 */
+    @keyframes confetti-fall {
+      0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+    .confetti-piece {
+      position: fixed;
+      top: -10px;
+      width: 10px;
+      height: 10px;
+      z-index: 9999;
+      pointer-events: none;
+      animation: confetti-fall 3s ease-in forwards;
+    }
+
+    /* 알림 드롭다운 */
+    .notification-dropdown {
+      opacity: 0;
+      transform: translateY(-10px) scale(0.95);
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .notification-dropdown.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    /* 탭 인디케이터 애니메이션 */
+    .tab-btn {
+      position: relative;
+      transition: color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .tab-btn::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: #3b82c4;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateX(-50%);
+    }
+    .tab-btn.active::after {
+      width: 100%;
+    }
+
+    /* 카드 호버 */
+    .card-hover {
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(30, 58, 95, 0.15);
+    }
+
+    /* 모달 오버레이 */
+    .modal-overlay {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-content {
+      transform: scale(0.9) translateY(20px);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.active .modal-content {
+      transform: scale(1) translateY(0);
+    }
+
+    /* 펄스 뱃지 카운터 */
+    @keyframes pulse-badge {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+    .pulse-badge {
+      animation: pulse-badge 1.5s ease-in-out infinite;
+    }
+
+    /* 모바일 메뉴 */
+    .mobile-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-menu.open {
+      max-height: 400px;
+    }
+
+    /* 라인 클램프 */
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="background-color: #f1f5f9;">
+
+  <!-- ==================== 로그인 화면 ==================== -->
+  <div id="loginScreen" class="min-h-screen flex items-center justify-center px-4" style="background: linear-gradient(135deg, #0f1d2f 0%, #1e3a5f 50%, #3b82c4 100%);">
+    <div class="scroll-reveal w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 sm:p-10" style="border-top: 4px solid #3b82c4;">
+      <!-- 로고 -->
+      <div class="flex justify-center mb-6">
+        <img src="./logo.png" alt="MSECM" class="h-10 sm:h-12 w-auto" />
+      </div>
+      <!-- 제목 -->
+      <h1 class="text-2xl sm:text-3xl font-bold text-center mb-2" style="color: #1e3a5f;">디지털 포트폴리오</h1>
+      <p class="text-center text-gray-500 mb-8 text-sm">학습의 여정을 기록하고, 성장을 증명하세요</p>
+
+      <!-- 폼 -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold mb-1.5" style="color: #1e3a5f;">닉네임 <span style="color: #ef4444;">*</span></label>
+          <input id="loginNickname" type="text" placeholder="닉네임을 입력하세요"
+            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none text-sm spring-transition"
+            onfocus="this.style.borderColor='#3b82c4'; this.style.boxShadow='0 0 0 3px rgba(59,130,196,0.15)'"
+            onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold mb-1.5" style="color: #1e3a5f;">소속 학교 <span class="text-gray-400 font-normal">(선택)</span></label>
+          <input id="loginSchool" type="text" placeholder="학교명을 입력하세요"
+            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none text-sm spring-transition"
+            onfocus="this.style.borderColor='#3b82c4'; this.style.boxShadow='0 0 0 3px rgba(59,130,196,0.15)'"
+            onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'" />
+        </div>
+        <button id="loginBtn" class="w-full py-3.5 rounded-xl text-white font-bold text-base spring-transition"
+          style="background-color: #1e3a5f;"
+          onmouseover="this.style.backgroundColor='#3b82c4'"
+          onmouseout="this.style.backgroundColor='#1e3a5f'">
+          시작하기
+        </button>
+        <p id="loginError" class="text-center text-sm hidden" style="color: #ef4444;">닉네임을 입력해주세요.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 메인 대시보드 ==================== -->
+  <div id="mainApp" class="hidden min-h-screen" style="background-color: #f1f5f9;">
+
+    <!-- 네비게이션 바 -->
+    <nav style="background-color: #1e3a5f;" class="sticky top-0 z-50 shadow-lg">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="flex items-center justify-between h-16">
+          <!-- 로고 + 타이틀 -->
+          <div class="flex items-center gap-3">
+            <img src="./logo.png" alt="MSECM" class="h-8 sm:h-10 w-auto" />
+            <span class="text-white font-bold text-sm sm:text-base hidden sm:block">디지털 포트폴리오</span>
+          </div>
+
+          <!-- 데스크톱 메뉴 -->
+          <div class="hidden md:flex items-center gap-1">
+            <button data-tab="dashboard" class="tab-btn active px-4 py-2 text-sm font-medium text-white rounded-lg">대시보드</button>
+            <button data-tab="programs" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg" style="color: #9ca3af;">프로그램</button>
+            <button data-tab="records" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg" style="color: #9ca3af;">내 기록</button>
+            <button data-tab="badges" class="tab-btn px-4 py-2 text-sm font-medium rounded-lg" style="color: #9ca3af;">뱃지</button>
+          </div>
+
+          <!-- 우측 (알림 + 유저) -->
+          <div class="flex items-center gap-3">
+            <!-- 알림 -->
+            <div class="relative" id="notifWrapper">
+              <button id="notifToggleBtn" class="relative p-2 hover:text-white spring-transition" style="color: #9ca3af;">
+                <span class="iconify text-xl" data-icon="solar:bell-bold"></span>
+                <span id="notifBadge" class="hidden absolute -top-0.5 -right-0.5 w-5 h-5 text-xs font-bold text-white rounded-full items-center justify-center pulse-badge" style="background-color: #ef4444;">0</span>
+              </button>
+              <!-- 알림 드롭다운 -->
+              <div id="notifDropdown" class="notification-dropdown absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden">
+                <div class="px-4 py-3 font-bold text-sm" style="background-color: #f8fafc; color: #1e3a5f; border-bottom: 1px solid #e5e7eb;">알림</div>
+                <div id="notifList" class="max-h-64 overflow-y-auto">
+                </div>
+                <div class="px-4 py-2 text-center" style="border-top: 1px solid #e5e7eb;">
+                  <button id="clearNotifBtn" class="text-xs font-medium" style="color: #3b82c4;">모두 읽음 처리</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 유저 정보 -->
+            <div class="hidden sm:flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style="background-color: #3b82c4;">
+                <span id="navUserInitial">U</span>
+              </div>
+              <span id="navUserName" class="text-white text-sm font-medium">사용자</span>
+            </div>
+            <button id="logoutBtn" class="text-gray-400 hover:text-white text-xs sm:text-sm spring-transition px-2 py-1 rounded-lg hover:bg-white/10">로그아웃</button>
+
+            <!-- 모바일 메뉴 토글 -->
+            <button id="mobileMenuBtn" class="md:hidden text-white p-1">
+              <span class="iconify text-2xl" data-icon="solar:hamburger-menu-linear"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 모바일 메뉴 -->
+        <div id="mobileMenu" class="mobile-menu md:hidden">
+          <div class="py-3 space-y-1 border-t border-white/10">
+            <button data-mobile-tab="dashboard" class="block w-full text-left px-3 py-2 text-white text-sm rounded-lg hover:bg-white/10 spring-transition">대시보드</button>
+            <button data-mobile-tab="programs" class="block w-full text-left px-3 py-2 text-white text-sm rounded-lg hover:bg-white/10 spring-transition">프로그램</button>
+            <button data-mobile-tab="records" class="block w-full text-left px-3 py-2 text-white text-sm rounded-lg hover:bg-white/10 spring-transition">내 기록</button>
+            <button data-mobile-tab="badges" class="block w-full text-left px-3 py-2 text-white text-sm rounded-lg hover:bg-white/10 spring-transition">뱃지</button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 콘텐츠 영역 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+      <!-- ===== 대시보드 탭 ===== -->
+      <div id="tab-dashboard" class="tab-content">
+        <!-- 환영 메시지 -->
+        <div class="scroll-reveal mb-8">
+          <h2 class="text-2xl sm:text-3xl font-bold" style="color: #1e3a5f;">안녕하세요, <span id="welcomeName">사용자</span>님!</h2>
+          <p class="text-gray-500 mt-1" id="welcomeSchool"></p>
+        </div>
+
+        <!-- 통계 카드 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div class="scroll-reveal card-hover bg-white rounded-2xl p-5 shadow-sm" style="border-left: 4px solid #3b82c4;">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background-color: rgba(59,130,196,0.1);">
+                <span class="iconify text-xl" data-icon="solar:book-bookmark-bold" style="color: #3b82c4;"></span>
+              </div>
+            </div>
+            <p class="text-2xl font-bold" style="color: #1e3a5f;" id="statPrograms">0</p>
+            <p class="text-xs text-gray-500 mt-1">참여 프로그램</p>
+          </div>
+          <div class="scroll-reveal card-hover bg-white rounded-2xl p-5 shadow-sm" style="border-left: 4px solid #059669;">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background-color: rgba(5,150,105,0.1);">
+                <span class="iconify text-xl" data-icon="solar:upload-minimalistic-bold" style="color: #059669;"></span>
+              </div>
+            </div>
+            <p class="text-2xl font-bold" style="color: #1e3a5f;" id="statUploads">0</p>
+            <p class="text-xs text-gray-500 mt-1">제출 산출물</p>
+          </div>
+          <div class="scroll-reveal card-hover bg-white rounded-2xl p-5 shadow-sm" style="border-left: 4px solid #f59e0b;">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background-color: rgba(245,158,11,0.1);">
+                <span class="iconify text-xl" data-icon="solar:medal-ribbon-star-bold" style="color: #f59e0b;"></span>
+              </div>
+            </div>
+            <p class="text-2xl font-bold" style="color: #1e3a5f;" id="statBadges">0</p>
+            <p class="text-xs text-gray-500 mt-1">획득 뱃지</p>
+          </div>
+          <div class="scroll-reveal card-hover bg-white rounded-2xl p-5 shadow-sm" style="border-left: 4px solid #8b5cf6;">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background-color: rgba(139,92,246,0.1);">
+                <span class="iconify text-xl" data-icon="solar:document-text-bold" style="color: #8b5cf6;"></span>
+              </div>
+            </div>
+            <p class="text-2xl font-bold" style="color: #1e3a5f;" id="statRecords">0</p>
+            <p class="text-xs text-gray-500 mt-1">학습 기록</p>
+          </div>
+        </div>
+
+        <!-- 최근 활동 + 알림 -->
+        <div class="grid lg:grid-cols-3 gap-6">
+          <!-- 최근 활동 타임라인 -->
+          <div class="lg:col-span-2 scroll-reveal">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+              <h3 class="text-lg font-bold mb-4" style="color: #1e3a5f;">
+                <span class="iconify inline-block mr-2" data-icon="solar:history-bold" style="color: #3b82c4;"></span>
+                최근 활동
+              </h3>
+              <div id="recentActivity" class="space-y-4">
+                <p class="text-gray-400 text-sm text-center py-8">아직 활동 기록이 없습니다. 프로그램에 참여해보세요!</p>
+              </div>
+            </div>
+          </div>
+          <!-- 알림 패널 -->
+          <div class="scroll-reveal">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+              <h3 class="text-lg font-bold mb-4" style="color: #1e3a5f;">
+                <span class="iconify inline-block mr-2" data-icon="solar:bell-bold" style="color: #f59e0b;"></span>
+                알림
+              </h3>
+              <div id="dashNotifications" class="space-y-3">
+                <p class="text-gray-400 text-sm text-center py-8">새로운 알림이 없습니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 프로그램 탭 ===== -->
+      <div id="tab-programs" class="tab-content hidden">
+        <div class="scroll-reveal mb-6">
+          <h2 class="text-2xl font-bold" style="color: #1e3a5f;">프로그램 목록</h2>
+          <p class="text-gray-500 mt-1 text-sm">참여하고 싶은 프로그램을 선택하세요</p>
+        </div>
+        <div id="programGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+      </div>
+
+      <!-- ===== 내 기록 탭 ===== -->
+      <div id="tab-records" class="tab-content hidden">
+        <div class="scroll-reveal mb-6">
+          <h2 class="text-2xl font-bold" style="color: #1e3a5f;">내 학습 기록</h2>
+          <p class="text-gray-500 mt-1 text-sm">프로그램별 학습 기록과 산출물을 관리하세요</p>
+        </div>
+
+        <!-- 참여 프로그램 없을 때 -->
+        <div id="noRecordsMsg" class="text-center py-16">
+          <span class="iconify text-6xl text-gray-300 mb-4" data-icon="solar:notebook-minimalistic-bold"></span>
+          <p class="text-gray-400">참여 중인 프로그램이 없습니다.</p>
+          <button id="goToProgramsBtn" class="mt-4 px-6 py-2 rounded-xl text-white text-sm font-medium spring-transition" style="background-color: #3b82c4;" onmouseover="this.style.backgroundColor='#1e3a5f'" onmouseout="this.style.backgroundColor='#3b82c4'">프로그램 둘러보기</button>
+        </div>
+
+        <!-- 프로그램별 기록 영역 -->
+        <div id="recordsContainer" class="space-y-8 hidden">
+          <div class="flex gap-2 overflow-x-auto pb-2" id="recordProgramTabs"></div>
+          <div id="recordContent"></div>
+        </div>
+      </div>
+
+      <!-- ===== 뱃지 탭 ===== -->
+      <div id="tab-badges" class="tab-content hidden">
+        <div class="scroll-reveal mb-6">
+          <h2 class="text-2xl font-bold" style="color: #1e3a5f;">디지털 뱃지</h2>
+          <p class="text-gray-500 mt-1 text-sm">학습 활동을 통해 뱃지를 획득하세요</p>
+        </div>
+        <div id="badgeGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ===== 축하 모달 ===== -->
+  <div id="celebrationModal" class="modal-overlay fixed inset-0 z-[100] flex items-center justify-center" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-content bg-white rounded-2xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl">
+      <div class="text-6xl mb-4" id="modalBadgeEmoji"></div>
+      <h3 class="text-xl font-bold mb-2" style="color: #1e3a5f;" id="modalBadgeTitle">뱃지 획득!</h3>
+      <p class="text-gray-500 text-sm mb-6" id="modalBadgeDesc">축하합니다! 새로운 뱃지를 획득했습니다.</p>
+      <button id="closeCelebrationBtn" class="px-8 py-3 rounded-xl text-white font-bold spring-transition" style="background-color: #3b82c4;" onmouseover="this.style.backgroundColor='#1e3a5f'" onmouseout="this.style.backgroundColor='#3b82c4'">확인</button>
+    </div>
+  </div>
+
+  <!-- ==================== 자바스크립트 ==================== -->
+  <script>
+    // ===== 프로그램 데이터 =====
+    var PROGRAMS = [
+      { id: 'digital-literacy', title: '디지털 리터러시 기초', desc: '디지털 시대에 필요한 기본적인 정보 활용 능력을 기릅니다.', icon: 'solar:monitor-smartphone-bold', difficulty: '초급', color: '#3b82c4' },
+      { id: 'ai-learning', title: 'AI 활용 학습법', desc: '인공지능을 학습 도구로 활용하는 방법을 배웁니다.', icon: 'solar:atom-bold', difficulty: '중급', color: '#8b5cf6' },
+      { id: 'coding-vibe', title: '코딩 & 바이브코딩', desc: '창의적 코딩과 바이브코딩의 세계를 경험합니다.', icon: 'solar:code-bold', difficulty: '중급', color: '#059669' },
+      { id: 'data-analysis', title: '데이터 분석 입문', desc: '데이터를 수집하고 분석하는 기초 역량을 쌓습니다.', icon: 'solar:chart-2-bold', difficulty: '중급', color: '#f59e0b' },
+      { id: 'content-creation', title: '디지털 콘텐츠 제작', desc: '영상, 이미지, 문서 등 다양한 디지털 콘텐츠를 만듭니다.', icon: 'solar:pallete-2-bold', difficulty: '초급', color: '#ef4444' },
+      { id: 'global-comm', title: '글로벌 의사소통', desc: '다문화 환경에서의 효과적인 소통 능력을 기릅니다.', icon: 'solar:earth-bold', difficulty: '고급', color: '#0ea5e9' }
+    ];
+
+    // ===== 뱃지 데이터 =====
+    var BADGES = [
+      { id: 'first-step', emoji: '\u{1F31F}', title: '첫 발걸음', desc: '첫 학습 기록을 작성하세요', check: function(d) { return d.totalRecords >= 1; } },
+      { id: 'steady-learner', emoji: '\u{1F4DD}', title: '꾸준한 학습자', desc: '학습 기록 5개를 작성하세요', check: function(d) { return d.totalRecords >= 5; } },
+      { id: 'creative-master', emoji: '\u{1F3A8}', title: '창작의 달인', desc: '산출물 3개를 업로드하세요', check: function(d) { return d.totalUploads >= 3; } },
+      { id: 'program-complete', emoji: '\u{1F3C6}', title: '프로그램 완주', desc: '프로그램 1개에서 기록 3개 이상 작성', check: function(d) { return d.hasCompletedProgram; } },
+      { id: 'global-leader', emoji: '\u{1F30D}', title: '글로벌 리더', desc: '글로벌 의사소통 프로그램에 참여하세요', check: function(d) { return d.joinedPrograms.indexOf('global-comm') !== -1; } },
+      { id: 'idea-bank', emoji: '\u{1F4A1}', title: '아이디어 뱅크', desc: '학습 기록 10개를 작성하세요', check: function(d) { return d.totalRecords >= 10; } },
+      { id: 'passion-icon', emoji: '\u{1F525}', title: '열정의 아이콘', desc: '3개 이상의 프로그램에 참여하세요', check: function(d) { return d.joinedPrograms.length >= 3; } },
+      { id: 'all-rounder', emoji: '\u{2B50}', title: '올라운더', desc: '전체 프로그램에 참여하세요', check: function(d) { return d.joinedPrograms.length >= PROGRAMS.length; } }
+    ];
+
+    // 더미 알림
+    var DUMMY_NOTIFICATIONS = [
+      { text: '선생님이 "디지털 리터러시 기초" 과제에 피드백을 남겼습니다.', time: '방금 전', icon: 'solar:chat-round-dots-bold', color: '#3b82c4' },
+      { text: '새로운 프로그램 "AI 활용 학습법"이 추가되었습니다.', time: '1시간 전', icon: 'solar:add-circle-bold', color: '#059669' },
+      { text: '"코딩 & 바이브코딩" 프로그램 마감이 3일 남았습니다.', time: '오늘', icon: 'solar:alarm-bold', color: '#f59e0b' }
+    ];
+
+    // ===== 상태 =====
+    var currentUser = null;
+    var currentTab = 'dashboard';
+    var currentRecordProgram = null;
+    var notifications = [];
+
+    // ===== localStorage 헬퍼 =====
+    function getData(key, fallback) {
+      try { var val = JSON.parse(localStorage.getItem(key)); return val !== null ? val : fallback; }
+      catch(e) { return fallback; }
+    }
+    function setData(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    // ===== 텍스트 이스케이프 (XSS 방지) =====
+    function esc(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ===== 로그인 =====
+    document.getElementById('loginBtn').addEventListener('click', function() {
+      var nickname = document.getElementById('loginNickname').value.trim();
+      var school = document.getElementById('loginSchool').value.trim();
+      if (!nickname) {
+        document.getElementById('loginError').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('loginError').classList.add('hidden');
+      currentUser = { nickname: nickname, school: school, loginTime: Date.now() };
+      setData('portfolio_user', currentUser);
+      if (!getData('portfolio_programs', null)) setData('portfolio_programs', []);
+      if (!getData('portfolio_records', null)) setData('portfolio_records', {});
+      if (!getData('portfolio_uploads', null)) setData('portfolio_uploads', {});
+      if (!getData('portfolio_badges', null)) setData('portfolio_badges', []);
+      showMainApp();
+    });
+
+    // Enter 키로 로그인
+    document.getElementById('loginNickname').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
+    document.getElementById('loginSchool').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('loginBtn').click(); });
+
+    // ===== 로그아웃 =====
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+      currentUser = null;
+      localStorage.removeItem('portfolio_user');
+      document.getElementById('mainApp').classList.add('hidden');
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('loginNickname').value = '';
+      document.getElementById('loginSchool').value = '';
+    });
+
+    // ===== 메인 앱 표시 =====
+    function showMainApp() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('navUserName').textContent = currentUser.nickname;
+      document.getElementById('navUserInitial').textContent = currentUser.nickname.charAt(0);
+      document.getElementById('welcomeName').textContent = currentUser.nickname;
+      document.getElementById('welcomeSchool').textContent = currentUser.school ? currentUser.school + ' 소속' : '';
+      initNotifications();
+      switchTab('dashboard');
+      triggerScrollReveal();
+    }
+
+    // ===== 탭 전환 =====
+    // 데스크톱 탭 버튼
+    document.querySelectorAll('.tab-btn[data-tab]').forEach(function(btn) {
+      btn.addEventListener('click', function() { switchTab(this.dataset.tab); });
+    });
+    // 모바일 탭 버튼
+    document.querySelectorAll('[data-mobile-tab]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        switchTab(this.dataset.mobileTab);
+        toggleMobileMenu();
+      });
+    });
+    // "프로그램 둘러보기" 버튼
+    document.getElementById('goToProgramsBtn').addEventListener('click', function() { switchTab('programs'); });
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.add('hidden'); });
+      document.getElementById('tab-' + tab).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn[data-tab]').forEach(function(btn) {
+        if (btn.dataset.tab === tab) {
+          btn.classList.add('active');
+          btn.style.color = '#ffffff';
+        } else {
+          btn.classList.remove('active');
+          btn.style.color = '#9ca3af';
+        }
+      });
+
+      if (tab === 'dashboard') renderDashboard();
+      else if (tab === 'programs') renderPrograms();
+      else if (tab === 'records') renderRecords();
+      else if (tab === 'badges') renderBadges();
+
+      setTimeout(triggerScrollReveal, 50);
+    }
+
+    // ===== 대시보드 렌더링 =====
+    function renderDashboard() {
+      var joined = getData('portfolio_programs', []);
+      var records = getData('portfolio_records', {});
+      var uploads = getData('portfolio_uploads', {});
+      var badges = getData('portfolio_badges', []);
+
+      var totalRecords = 0, totalUploads = 0;
+      Object.values(records).forEach(function(arr) { totalRecords += arr.length; });
+      Object.values(uploads).forEach(function(arr) { totalUploads += arr.length; });
+
+      document.getElementById('statPrograms').textContent = joined.length;
+      document.getElementById('statUploads').textContent = totalUploads;
+      document.getElementById('statBadges').textContent = badges.length;
+      document.getElementById('statRecords').textContent = totalRecords;
+
+      renderRecentActivity(records, uploads);
+      renderDashNotifications();
+    }
+
+    function renderRecentActivity(records, uploads) {
+      var container = document.getElementById('recentActivity');
+      var activities = [];
+
+      Object.keys(records).forEach(function(progId) {
+        var prog = PROGRAMS.find(function(p) { return p.id === progId; });
+        records[progId].forEach(function(r) {
+          activities.push({ type: 'record', program: prog ? prog.title : progId, title: r.title, date: r.date, timestamp: new Date(r.date).getTime() });
+        });
+      });
+      Object.keys(uploads).forEach(function(progId) {
+        var prog = PROGRAMS.find(function(p) { return p.id === progId; });
+        uploads[progId].forEach(function(u) {
+          activities.push({ type: 'upload', program: prog ? prog.title : progId, title: u.filename, date: u.date, timestamp: new Date(u.date).getTime() });
+        });
+      });
+
+      activities.sort(function(a, b) { return b.timestamp - a.timestamp; });
+      activities = activities.slice(0, 8);
+
+      // DOM 방식으로 렌더링
+      container.textContent = '';
+      if (activities.length === 0) {
+        var p = document.createElement('p');
+        p.className = 'text-gray-400 text-sm text-center py-8';
+        p.textContent = '아직 활동 기록이 없습니다. 프로그램에 참여해보세요!';
+        container.appendChild(p);
+        return;
+      }
+
+      activities.forEach(function(a) {
+        var iconName = a.type === 'record' ? 'solar:document-text-bold' : 'solar:upload-minimalistic-bold';
+        var iconColor = a.type === 'record' ? '#3b82c4' : '#059669';
+        var label = a.type === 'record' ? '기록 작성' : '산출물 업로드';
+
+        var row = document.createElement('div');
+        row.className = 'flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 spring-transition';
+
+        var iconWrap = document.createElement('div');
+        iconWrap.className = 'w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0';
+        iconWrap.style.backgroundColor = iconColor + '15';
+        var iconEl = document.createElement('span');
+        iconEl.className = 'iconify text-base';
+        iconEl.dataset.icon = iconName;
+        iconEl.style.color = iconColor;
+        iconWrap.appendChild(iconEl);
+
+        var textWrap = document.createElement('div');
+        textWrap.className = 'min-w-0 flex-1';
+        var titleEl = document.createElement('p');
+        titleEl.className = 'text-sm font-medium';
+        titleEl.style.color = '#1e3a5f';
+        titleEl.textContent = a.title;
+        var metaEl = document.createElement('p');
+        metaEl.className = 'text-xs text-gray-400 mt-0.5';
+        metaEl.textContent = a.program + ' \u00B7 ' + label + ' \u00B7 ' + a.date;
+        textWrap.appendChild(titleEl);
+        textWrap.appendChild(metaEl);
+
+        row.appendChild(iconWrap);
+        row.appendChild(textWrap);
+        container.appendChild(row);
+      });
+    }
+
+    // ===== 프로그램 렌더링 =====
+    function renderPrograms() {
+      var joined = getData('portfolio_programs', []);
+      var grid = document.getElementById('programGrid');
+      var diffColors = { '초급': '#059669', '중급': '#f59e0b', '고급': '#ef4444' };
+
+      grid.textContent = '';
+      PROGRAMS.forEach(function(p) {
+        var isJoined = joined.indexOf(p.id) !== -1;
+
+        var card = document.createElement('div');
+        card.className = 'scroll-reveal card-hover bg-white rounded-2xl p-6 shadow-sm relative overflow-hidden';
+
+        // 장식 원
+        var deco = document.createElement('div');
+        deco.className = 'absolute top-0 right-0 w-24 h-24 rounded-bl-full';
+        deco.style.backgroundColor = p.color;
+        deco.style.opacity = '0.05';
+        card.appendChild(deco);
+
+        // 아이콘
+        var iconWrap = document.createElement('div');
+        iconWrap.className = 'w-12 h-12 rounded-xl flex items-center justify-center mb-4';
+        iconWrap.style.backgroundColor = p.color + '15';
+        var iconEl = document.createElement('span');
+        iconEl.className = 'iconify text-2xl';
+        iconEl.dataset.icon = p.icon;
+        iconEl.style.color = p.color;
+        iconWrap.appendChild(iconEl);
+        card.appendChild(iconWrap);
+
+        // 제목
+        var titleEl = document.createElement('h3');
+        titleEl.className = 'font-bold text-base mb-2';
+        titleEl.style.color = '#1e3a5f';
+        titleEl.textContent = p.title;
+        card.appendChild(titleEl);
+
+        // 설명
+        var descEl = document.createElement('p');
+        descEl.className = 'text-sm text-gray-500 mb-4 leading-relaxed';
+        descEl.textContent = p.desc;
+        card.appendChild(descEl);
+
+        // 하단
+        var footer = document.createElement('div');
+        footer.className = 'flex items-center justify-between';
+
+        var diffBadge = document.createElement('span');
+        diffBadge.className = 'text-xs font-semibold px-3 py-1 rounded-full';
+        diffBadge.style.backgroundColor = diffColors[p.difficulty] + '15';
+        diffBadge.style.color = diffColors[p.difficulty];
+        diffBadge.textContent = p.difficulty;
+        footer.appendChild(diffBadge);
+
+        if (isJoined) {
+          var joined_badge = document.createElement('span');
+          joined_badge.className = 'text-xs font-bold px-4 py-2 rounded-xl';
+          joined_badge.style.backgroundColor = '#05966915';
+          joined_badge.style.color = '#059669';
+          joined_badge.textContent = '참여 중';
+          footer.appendChild(joined_badge);
+        } else {
+          var joinBtn = document.createElement('button');
+          joinBtn.className = 'text-xs font-bold px-4 py-2 rounded-xl text-white spring-transition';
+          joinBtn.style.backgroundColor = p.color;
+          joinBtn.textContent = '참여하기';
+          joinBtn.addEventListener('mouseover', function() { this.style.opacity = '0.85'; });
+          joinBtn.addEventListener('mouseout', function() { this.style.opacity = '1'; });
+          (function(pid) {
+            joinBtn.addEventListener('click', function() { joinProgram(pid); });
+          })(p.id);
+          footer.appendChild(joinBtn);
+        }
+
+        card.appendChild(footer);
+        grid.appendChild(card);
+      });
+
+      setTimeout(triggerScrollReveal, 50);
+    }
+
+    function joinProgram(programId) {
+      var joined = getData('portfolio_programs', []);
+      if (joined.indexOf(programId) === -1) {
+        joined.push(programId);
+        setData('portfolio_programs', joined);
+        var prog = PROGRAMS.find(function(p) { return p.id === programId; });
+        addNotification('"' + prog.title + '" 프로그램에 참여했습니다!');
+        renderPrograms();
+        checkBadges();
+      }
+    }
+
+    // ===== 내 기록 렌더링 =====
+    function renderRecords() {
+      var joined = getData('portfolio_programs', []);
+      var noMsg = document.getElementById('noRecordsMsg');
+      var container = document.getElementById('recordsContainer');
+
+      if (joined.length === 0) {
+        noMsg.classList.remove('hidden');
+        container.classList.add('hidden');
+        return;
+      }
+      noMsg.classList.add('hidden');
+      container.classList.remove('hidden');
+
+      if (!currentRecordProgram || joined.indexOf(currentRecordProgram) === -1) {
+        currentRecordProgram = joined[0];
+      }
+
+      // 프로그램 탭
+      var tabsEl = document.getElementById('recordProgramTabs');
+      tabsEl.textContent = '';
+      joined.forEach(function(pid) {
+        var prog = PROGRAMS.find(function(p) { return p.id === pid; });
+        var isActive = pid === currentRecordProgram;
+        var btn = document.createElement('button');
+        btn.className = 'flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium spring-transition';
+        btn.style.backgroundColor = isActive ? '#1e3a5f' : '#e5e7eb';
+        btn.style.color = isActive ? '#ffffff' : '#6b7280';
+        btn.textContent = prog ? prog.title : pid;
+        (function(id) {
+          btn.addEventListener('click', function() {
+            currentRecordProgram = id;
+            renderRecords();
+          });
+        })(pid);
+        tabsEl.appendChild(btn);
+      });
+
+      renderRecordContent();
+    }
+
+    function renderRecordContent() {
+      var prog = PROGRAMS.find(function(p) { return p.id === currentRecordProgram; });
+      var records = getData('portfolio_records', {});
+      var uploads = getData('portfolio_uploads', {});
+      var progRecords = records[currentRecordProgram] || [];
+      var progUploads = uploads[currentRecordProgram] || [];
+      var container = document.getElementById('recordContent');
+      var today = new Date().toISOString().split('T')[0];
+
+      container.textContent = '';
+
+      // ---- 학습 기록 작성 폼 ----
+      var formSection = document.createElement('div');
+      formSection.className = 'bg-white rounded-2xl shadow-sm p-6 mb-6';
+
+      var formTitle = document.createElement('h3');
+      formTitle.className = 'font-bold text-base mb-4';
+      formTitle.style.color = '#1e3a5f';
+      var formTitleIcon = document.createElement('span');
+      formTitleIcon.className = 'iconify inline-block mr-2';
+      formTitleIcon.dataset.icon = 'solar:pen-new-square-bold';
+      formTitleIcon.style.color = '#3b82c4';
+      formTitle.appendChild(formTitleIcon);
+      formTitle.appendChild(document.createTextNode('학습 기록 작성'));
+      formSection.appendChild(formTitle);
+
+      var formGrid = document.createElement('div');
+      formGrid.className = 'grid sm:grid-cols-2 gap-4 mb-4';
+
+      // 날짜
+      var dateWrap = document.createElement('div');
+      var dateLabel = document.createElement('label');
+      dateLabel.className = 'block text-xs font-medium text-gray-500 mb-1';
+      dateLabel.textContent = '날짜';
+      var dateInput = document.createElement('input');
+      dateInput.type = 'date';
+      dateInput.id = 'recordDate';
+      dateInput.value = today;
+      dateInput.className = 'w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none';
+      dateInput.style.color = '#1e3a5f';
+      dateInput.addEventListener('focus', function() { this.style.borderColor='#3b82c4'; this.style.boxShadow='0 0 0 3px rgba(59,130,196,0.15)'; });
+      dateInput.addEventListener('blur', function() { this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'; });
+      dateWrap.appendChild(dateLabel);
+      dateWrap.appendChild(dateInput);
+
+      // 제목
+      var titleWrap = document.createElement('div');
+      var titleLabel = document.createElement('label');
+      titleLabel.className = 'block text-xs font-medium text-gray-500 mb-1';
+      titleLabel.textContent = '제목';
+      var titleInput = document.createElement('input');
+      titleInput.type = 'text';
+      titleInput.id = 'recordTitle';
+      titleInput.placeholder = '학습 내용 제목';
+      titleInput.className = 'w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none';
+      titleInput.addEventListener('focus', function() { this.style.borderColor='#3b82c4'; this.style.boxShadow='0 0 0 3px rgba(59,130,196,0.15)'; });
+      titleInput.addEventListener('blur', function() { this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'; });
+      titleWrap.appendChild(titleLabel);
+      titleWrap.appendChild(titleInput);
+
+      formGrid.appendChild(dateWrap);
+      formGrid.appendChild(titleWrap);
+      formSection.appendChild(formGrid);
+
+      // 내용
+      var contentWrap = document.createElement('div');
+      contentWrap.className = 'mb-4';
+      var contentLabel = document.createElement('label');
+      contentLabel.className = 'block text-xs font-medium text-gray-500 mb-1';
+      contentLabel.textContent = '내용';
+      var contentArea = document.createElement('textarea');
+      contentArea.id = 'recordContentText';
+      contentArea.rows = 4;
+      contentArea.placeholder = '오늘 배운 내용, 느낀 점, 질문 등을 자유롭게 작성하세요.';
+      contentArea.className = 'w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none resize-none';
+      contentArea.addEventListener('focus', function() { this.style.borderColor='#3b82c4'; this.style.boxShadow='0 0 0 3px rgba(59,130,196,0.15)'; });
+      contentArea.addEventListener('blur', function() { this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'; });
+      contentWrap.appendChild(contentLabel);
+      contentWrap.appendChild(contentArea);
+      formSection.appendChild(contentWrap);
+
+      var saveBtn = document.createElement('button');
+      saveBtn.className = 'px-6 py-2.5 rounded-xl text-white text-sm font-bold spring-transition';
+      saveBtn.style.backgroundColor = '#3b82c4';
+      saveBtn.textContent = '기록 저장';
+      saveBtn.addEventListener('mouseover', function() { this.style.backgroundColor = '#1e3a5f'; });
+      saveBtn.addEventListener('mouseout', function() { this.style.backgroundColor = '#3b82c4'; });
+      saveBtn.addEventListener('click', addRecord);
+      formSection.appendChild(saveBtn);
+      container.appendChild(formSection);
+
+      // ---- 산출물 업로드 ----
+      var uploadSection = document.createElement('div');
+      uploadSection.className = 'bg-white rounded-2xl shadow-sm p-6 mb-6';
+
+      var uploadTitle = document.createElement('h3');
+      uploadTitle.className = 'font-bold text-base mb-4';
+      uploadTitle.style.color = '#1e3a5f';
+      var uploadIcon = document.createElement('span');
+      uploadIcon.className = 'iconify inline-block mr-2';
+      uploadIcon.dataset.icon = 'solar:upload-minimalistic-bold';
+      uploadIcon.style.color = '#059669';
+      uploadTitle.appendChild(uploadIcon);
+      uploadTitle.appendChild(document.createTextNode('산출물 업로드'));
+      uploadSection.appendChild(uploadTitle);
+
+      var dropZone = document.createElement('div');
+      dropZone.className = 'border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-gray-300 spring-transition';
+      var cloudIcon = document.createElement('span');
+      cloudIcon.className = 'iconify text-4xl text-gray-300 mb-2';
+      cloudIcon.dataset.icon = 'solar:cloud-upload-bold';
+      var dropText = document.createElement('p');
+      dropText.className = 'text-sm text-gray-500 mb-3';
+      dropText.textContent = '파일을 선택하여 산출물을 업로드하세요';
+      var fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.className = 'hidden';
+      fileInput.addEventListener('change', function() { handleFileSelect(this); });
+      var fileBtn = document.createElement('button');
+      fileBtn.className = 'px-5 py-2 rounded-xl text-sm font-medium spring-transition';
+      fileBtn.style.backgroundColor = '#05966915';
+      fileBtn.style.color = '#059669';
+      fileBtn.textContent = '파일 선택';
+      fileBtn.addEventListener('click', function() { fileInput.click(); });
+      fileBtn.addEventListener('mouseover', function() { this.style.backgroundColor = '#05966925'; });
+      fileBtn.addEventListener('mouseout', function() { this.style.backgroundColor = '#05966915'; });
+      dropZone.appendChild(cloudIcon);
+      dropZone.appendChild(dropText);
+      dropZone.appendChild(fileInput);
+      dropZone.appendChild(fileBtn);
+      uploadSection.appendChild(dropZone);
+
+      // 업로드된 파일 목록
+      if (progUploads.length > 0) {
+        var uploadList = document.createElement('div');
+        uploadList.className = 'mt-4 space-y-2';
+        progUploads.forEach(function(u, i) {
+          var row = document.createElement('div');
+          row.className = 'flex items-center justify-between p-3 rounded-xl bg-gray-50';
+          var left = document.createElement('div');
+          left.className = 'flex items-center gap-2 min-w-0';
+          var fIcon = document.createElement('span');
+          fIcon.className = 'iconify text-base flex-shrink-0';
+          fIcon.dataset.icon = 'solar:file-bold';
+          fIcon.style.color = '#059669';
+          var fName = document.createElement('span');
+          fName.className = 'text-sm truncate';
+          fName.style.color = '#1e3a5f';
+          fName.textContent = u.filename;
+          var fDate = document.createElement('span');
+          fDate.className = 'text-xs text-gray-400 flex-shrink-0';
+          fDate.textContent = u.date;
+          left.appendChild(fIcon);
+          left.appendChild(fName);
+          left.appendChild(fDate);
+
+          var delBtn = document.createElement('button');
+          delBtn.className = 'text-gray-400 hover:text-red-500 spring-transition flex-shrink-0 ml-2';
+          var delIcon = document.createElement('span');
+          delIcon.className = 'iconify text-base';
+          delIcon.dataset.icon = 'solar:trash-bin-minimalistic-bold';
+          delBtn.appendChild(delIcon);
+          (function(idx) { delBtn.addEventListener('click', function() { deleteUpload(idx); }); })(i);
+
+          row.appendChild(left);
+          row.appendChild(delBtn);
+          uploadList.appendChild(row);
+        });
+        uploadSection.appendChild(uploadList);
+      }
+      container.appendChild(uploadSection);
+
+      // ---- 기록 목록 ----
+      var listSection = document.createElement('div');
+      listSection.className = 'bg-white rounded-2xl shadow-sm p-6';
+
+      var listTitle = document.createElement('h3');
+      listTitle.className = 'font-bold text-base mb-4';
+      listTitle.style.color = '#1e3a5f';
+      var listIcon = document.createElement('span');
+      listIcon.className = 'iconify inline-block mr-2';
+      listIcon.dataset.icon = 'solar:document-text-bold';
+      listIcon.style.color = '#8b5cf6';
+      listTitle.appendChild(listIcon);
+      listTitle.appendChild(document.createTextNode('작성된 기록 (' + progRecords.length + '개)'));
+      listSection.appendChild(listTitle);
+
+      if (progRecords.length === 0) {
+        var emptyMsg = document.createElement('p');
+        emptyMsg.className = 'text-gray-400 text-sm text-center py-6';
+        emptyMsg.textContent = '아직 작성된 기록이 없습니다.';
+        listSection.appendChild(emptyMsg);
+      } else {
+        var listWrap = document.createElement('div');
+        listWrap.className = 'space-y-3';
+        progRecords.forEach(function(r, i) {
+          var card = document.createElement('div');
+          card.className = 'card-hover p-4 rounded-xl border border-gray-100 bg-gray-50/50';
+          var topRow = document.createElement('div');
+          topRow.className = 'flex items-start justify-between gap-3';
+
+          var textCol = document.createElement('div');
+          textCol.className = 'min-w-0 flex-1';
+          var metaRow = document.createElement('div');
+          metaRow.className = 'flex items-center gap-2 mb-1';
+          var dateBadge = document.createElement('span');
+          dateBadge.className = 'text-xs font-medium px-2 py-0.5 rounded-full';
+          dateBadge.style.backgroundColor = '#3b82c415';
+          dateBadge.style.color = '#3b82c4';
+          dateBadge.textContent = r.date;
+          var recTitle = document.createElement('h4');
+          recTitle.className = 'text-sm font-bold truncate';
+          recTitle.style.color = '#1e3a5f';
+          recTitle.textContent = r.title;
+          metaRow.appendChild(dateBadge);
+          metaRow.appendChild(recTitle);
+
+          var contentP = document.createElement('p');
+          contentP.className = 'text-sm text-gray-500 mt-1 line-clamp-2';
+          contentP.style.whiteSpace = 'pre-wrap';
+          contentP.textContent = r.content;
+
+          textCol.appendChild(metaRow);
+          textCol.appendChild(contentP);
+
+          var delBtn = document.createElement('button');
+          delBtn.className = 'text-gray-400 hover:text-red-500 spring-transition flex-shrink-0 mt-1';
+          var delIcon = document.createElement('span');
+          delIcon.className = 'iconify text-lg';
+          delIcon.dataset.icon = 'solar:trash-bin-minimalistic-bold';
+          delBtn.appendChild(delIcon);
+          (function(idx) { delBtn.addEventListener('click', function() { deleteRecord(idx); }); })(i);
+
+          topRow.appendChild(textCol);
+          topRow.appendChild(delBtn);
+          card.appendChild(topRow);
+          listWrap.appendChild(card);
+        });
+        listSection.appendChild(listWrap);
+      }
+      container.appendChild(listSection);
+    }
+
+    function addRecord() {
+      var date = document.getElementById('recordDate').value;
+      var title = document.getElementById('recordTitle').value.trim();
+      var content = document.getElementById('recordContentText').value.trim();
+      if (!title || !content) { alert('제목과 내용을 모두 입력해주세요.'); return; }
+
+      var records = getData('portfolio_records', {});
+      if (!records[currentRecordProgram]) records[currentRecordProgram] = [];
+      records[currentRecordProgram].unshift({ date: date, title: title, content: content, id: Date.now() });
+      setData('portfolio_records', records);
+
+      var prog = PROGRAMS.find(function(p) { return p.id === currentRecordProgram; });
+      addNotification('"' + prog.title + '"에 새 학습 기록을 작성했습니다.');
+      renderRecordContent();
+      checkBadges();
+    }
+
+    function deleteRecord(index) {
+      if (!confirm('이 기록을 삭제하시겠습니까?')) return;
+      var records = getData('portfolio_records', {});
+      if (records[currentRecordProgram]) {
+        records[currentRecordProgram].splice(index, 1);
+        setData('portfolio_records', records);
+        renderRecordContent();
+        checkBadges();
+      }
+    }
+
+    function handleFileSelect(input) {
+      if (!input.files || !input.files[0]) return;
+      var file = input.files[0];
+      var uploads = getData('portfolio_uploads', {});
+      if (!uploads[currentRecordProgram]) uploads[currentRecordProgram] = [];
+      var today = new Date().toISOString().split('T')[0];
+      uploads[currentRecordProgram].unshift({ filename: file.name, date: today, id: Date.now() });
+      setData('portfolio_uploads', uploads);
+
+      var prog = PROGRAMS.find(function(p) { return p.id === currentRecordProgram; });
+      addNotification('"' + prog.title + '"에 산출물 "' + file.name + '"을 업로드했습니다.');
+      input.value = '';
+      renderRecordContent();
+      checkBadges();
+    }
+
+    function deleteUpload(index) {
+      if (!confirm('이 산출물을 삭제하시겠습니까?')) return;
+      var uploads = getData('portfolio_uploads', {});
+      if (uploads[currentRecordProgram]) {
+        uploads[currentRecordProgram].splice(index, 1);
+        setData('portfolio_uploads', uploads);
+        renderRecordContent();
+        checkBadges();
+      }
+    }
+
+    // ===== 뱃지 =====
+    function getBadgeData() {
+      var joined = getData('portfolio_programs', []);
+      var records = getData('portfolio_records', {});
+      var uploads = getData('portfolio_uploads', {});
+      var totalRecords = 0, totalUploads = 0, hasCompletedProgram = false;
+      Object.keys(records).forEach(function(pid) {
+        totalRecords += records[pid].length;
+        if (records[pid].length >= 3) hasCompletedProgram = true;
+      });
+      Object.keys(uploads).forEach(function(pid) { totalUploads += uploads[pid].length; });
+      return { joinedPrograms: joined, totalRecords: totalRecords, totalUploads: totalUploads, hasCompletedProgram: hasCompletedProgram };
+    }
+
+    function renderBadges() {
+      var data = getBadgeData();
+      var earned = getData('portfolio_badges', []);
+      var grid = document.getElementById('badgeGrid');
+
+      grid.textContent = '';
+      BADGES.forEach(function(b) {
+        var isEarned = earned.indexOf(b.id) !== -1;
+
+        var card = document.createElement('div');
+        card.className = 'scroll-reveal card-hover bg-white rounded-2xl p-6 shadow-sm text-center' + (isEarned ? ' badge-earned' : '');
+        if (!isEarned) {
+          card.style.filter = 'grayscale(0.8)';
+          card.style.opacity = '0.6';
+        }
+
+        var emojiWrap = document.createElement('div');
+        emojiWrap.className = 'relative inline-block mb-3';
+        var emojiSpan = document.createElement('span');
+        emojiSpan.className = 'text-5xl';
+        emojiSpan.textContent = b.emoji;
+        emojiWrap.appendChild(emojiSpan);
+
+        if (!isEarned) {
+          var lockIcon = document.createElement('span');
+          lockIcon.className = 'iconify absolute -bottom-1 -right-1 text-xl text-gray-400';
+          lockIcon.dataset.icon = 'solar:lock-keyhole-bold';
+          emojiWrap.appendChild(lockIcon);
+        }
+        card.appendChild(emojiWrap);
+
+        var titleEl = document.createElement('h4');
+        titleEl.className = 'font-bold text-sm mb-1';
+        titleEl.style.color = isEarned ? '#1e3a5f' : '#9ca3af';
+        titleEl.textContent = b.title;
+        card.appendChild(titleEl);
+
+        var descEl = document.createElement('p');
+        descEl.className = 'text-xs';
+        descEl.style.color = isEarned ? '#6b7280' : '#d1d5db';
+        descEl.textContent = b.desc;
+        card.appendChild(descEl);
+
+        if (isEarned) {
+          var earnedBadge = document.createElement('span');
+          earnedBadge.className = 'inline-block mt-3 text-xs font-semibold px-3 py-1 rounded-full';
+          earnedBadge.style.backgroundColor = '#05966915';
+          earnedBadge.style.color = '#059669';
+          earnedBadge.textContent = '획득 완료';
+          card.appendChild(earnedBadge);
+        }
+
+        grid.appendChild(card);
+      });
+
+      setTimeout(triggerScrollReveal, 50);
+    }
+
+    function checkBadges() {
+      var data = getBadgeData();
+      var earned = getData('portfolio_badges', []);
+      var newBadges = [];
+
+      BADGES.forEach(function(b) {
+        if (earned.indexOf(b.id) === -1 && b.check(data)) {
+          earned.push(b.id);
+          newBadges.push(b);
+        }
+      });
+
+      if (newBadges.length > 0) {
+        setData('portfolio_badges', earned);
+        showCelebration(newBadges[0]);
+        newBadges.forEach(function(b) {
+          addNotification('새 뱃지 "' + b.title + '" ' + b.emoji + '를 획득했습니다!');
+        });
+      }
+    }
+
+    // ===== 축하 모달 + 콘페티 =====
+    function showCelebration(badge) {
+      document.getElementById('modalBadgeEmoji').textContent = badge.emoji;
+      document.getElementById('modalBadgeTitle').textContent = '"' + badge.title + '" 뱃지 획득!';
+      document.getElementById('modalBadgeDesc').textContent = '축하합니다! ' + badge.desc + ' 조건을 달성했습니다.';
+      document.getElementById('celebrationModal').classList.add('active');
+      launchConfetti();
+    }
+
+    document.getElementById('closeCelebrationBtn').addEventListener('click', function() {
+      document.getElementById('celebrationModal').classList.remove('active');
+      document.querySelectorAll('.confetti-piece').forEach(function(el) { el.remove(); });
+    });
+
+    function launchConfetti() {
+      var colors = ['#3b82c4', '#059669', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#1e3a5f'];
+      for (var i = 0; i < 60; i++) {
+        var el = document.createElement('div');
+        el.classList.add('confetti-piece');
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        el.style.width = (Math.random() * 8 + 5) + 'px';
+        el.style.height = (Math.random() * 8 + 5) + 'px';
+        el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        el.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        el.style.animationDelay = (Math.random() * 1.5) + 's';
+        document.body.appendChild(el);
+      }
+      setTimeout(function() {
+        document.querySelectorAll('.confetti-piece').forEach(function(el) { el.remove(); });
+      }, 5000);
+    }
+
+    // ===== 알림 시스템 =====
+    function initNotifications() {
+      notifications = getData('portfolio_notifications', DUMMY_NOTIFICATIONS.slice());
+      if (!getData('portfolio_notifications', null)) {
+        setData('portfolio_notifications', notifications);
+      }
+      updateNotifUI();
+    }
+
+    function addNotification(text) {
+      var notif = { text: text, time: '방금 전', icon: 'solar:bell-bing-bold', color: '#3b82c4' };
+      notifications.unshift(notif);
+      setData('portfolio_notifications', notifications);
+      updateNotifUI();
+    }
+
+    function updateNotifUI() {
+      var badge = document.getElementById('notifBadge');
+      var count = notifications.length;
+      if (count > 0) {
+        badge.classList.remove('hidden');
+        badge.style.display = 'flex';
+        badge.textContent = count > 9 ? '9+' : count;
+      } else {
+        badge.classList.add('hidden');
+        badge.style.display = 'none';
+      }
+
+      // 드롭다운
+      var list = document.getElementById('notifList');
+      list.textContent = '';
+      if (notifications.length === 0) {
+        var p = document.createElement('p');
+        p.className = 'text-gray-400 text-sm text-center py-6';
+        p.textContent = '알림이 없습니다.';
+        list.appendChild(p);
+      } else {
+        notifications.slice(0, 10).forEach(function(n) {
+          var row = document.createElement('div');
+          row.className = 'flex items-start gap-3 px-4 py-3 hover:bg-gray-50 spring-transition';
+          row.style.borderBottom = '1px solid #f9fafb';
+
+          var iconWrap = document.createElement('div');
+          iconWrap.className = 'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0';
+          iconWrap.style.backgroundColor = n.color + '15';
+          var iconEl = document.createElement('span');
+          iconEl.className = 'iconify text-sm';
+          iconEl.dataset.icon = n.icon;
+          iconEl.style.color = n.color;
+          iconWrap.appendChild(iconEl);
+
+          var textWrap = document.createElement('div');
+          textWrap.className = 'min-w-0';
+          var textP = document.createElement('p');
+          textP.className = 'text-sm text-gray-700';
+          textP.textContent = n.text;
+          var timeP = document.createElement('p');
+          timeP.className = 'text-xs text-gray-400 mt-0.5';
+          timeP.textContent = n.time;
+          textWrap.appendChild(textP);
+          textWrap.appendChild(timeP);
+
+          row.appendChild(iconWrap);
+          row.appendChild(textWrap);
+          list.appendChild(row);
+        });
+      }
+
+      renderDashNotifications();
+    }
+
+    function renderDashNotifications() {
+      var el = document.getElementById('dashNotifications');
+      if (!el) return;
+      el.textContent = '';
+      if (notifications.length === 0) {
+        var p = document.createElement('p');
+        p.className = 'text-gray-400 text-sm text-center py-8';
+        p.textContent = '새로운 알림이 없습니다.';
+        el.appendChild(p);
+        return;
+      }
+      notifications.slice(0, 5).forEach(function(n) {
+        var row = document.createElement('div');
+        row.className = 'flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 spring-transition';
+        var iconWrap = document.createElement('div');
+        iconWrap.className = 'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0';
+        iconWrap.style.backgroundColor = n.color + '15';
+        var iconEl = document.createElement('span');
+        iconEl.className = 'iconify text-sm';
+        iconEl.dataset.icon = n.icon;
+        iconEl.style.color = n.color;
+        iconWrap.appendChild(iconEl);
+        var textWrap = document.createElement('div');
+        textWrap.className = 'min-w-0';
+        var textP = document.createElement('p');
+        textP.className = 'text-sm text-gray-600';
+        textP.textContent = n.text;
+        var timeP = document.createElement('p');
+        timeP.className = 'text-xs text-gray-400 mt-0.5';
+        timeP.textContent = n.time;
+        textWrap.appendChild(textP);
+        textWrap.appendChild(timeP);
+        row.appendChild(iconWrap);
+        row.appendChild(textWrap);
+        el.appendChild(row);
+      });
+    }
+
+    document.getElementById('notifToggleBtn').addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.getElementById('notifDropdown').classList.toggle('active');
+    });
+
+    document.getElementById('clearNotifBtn').addEventListener('click', function() {
+      notifications = [];
+      setData('portfolio_notifications', []);
+      updateNotifUI();
+      document.getElementById('notifDropdown').classList.remove('active');
+    });
+
+    // 외부 클릭 시 알림 닫기
+    document.addEventListener('click', function(e) {
+      var wrapper = document.getElementById('notifWrapper');
+      var dropdown = document.getElementById('notifDropdown');
+      if (dropdown && wrapper && !wrapper.contains(e.target) && dropdown.classList.contains('active')) {
+        dropdown.classList.remove('active');
+      }
+    });
+
+    // ===== 모바일 메뉴 =====
+    document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
+    function toggleMobileMenu() {
+      document.getElementById('mobileMenu').classList.toggle('open');
+    }
+
+    // ===== 스크롤 애니메이션 =====
+    function triggerScrollReveal() {
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry, i) {
+          if (entry.isIntersecting) {
+            setTimeout(function() { entry.target.classList.add('revealed'); }, i * 80);
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+
+      document.querySelectorAll('.scroll-reveal:not(.revealed)').forEach(function(el) { observer.observe(el); });
+    }
+
+    // ===== 초기화 =====
+    (function init() {
+      var saved = getData('portfolio_user', null);
+      if (saved) {
+        currentUser = saved;
+        showMainApp();
+      } else {
+        setTimeout(triggerScrollReveal, 100);
+      }
+    })();
+  </script>
+</body>
+</html>

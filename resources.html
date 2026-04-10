@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MSECM 교육자료실 — 글로컬 교육 그룹</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwindcss.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Pretendard 폰트 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
+
+  <!-- Iconify -->
+  <script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+  <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+
+  <style>
+    * { word-break: keep-all; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+
+    /* 스프링 물리 트랜지션 */
+    .spring-transition { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+
+    /* 스크롤 진입 애니메이션 */
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(2rem);
+      filter: blur(4px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .scroll-reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+
+    .reveal-left { opacity: 0; transform: translateX(-3rem); transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal-right { opacity: 0; transform: translateX(3rem); transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal-scale { opacity: 0; transform: scale(0.85); transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal-left.revealed, .reveal-right.revealed, .reveal-scale.revealed {
+      opacity: 1; transform: translateX(0) scale(1);
+    }
+
+    /* 글래스 네비게이션 */
+    .glass-nav {
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.85);
+      border-bottom: 1px solid rgba(30, 58, 95, 0.08);
+    }
+    .glass-nav.scrolled {
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.06);
+    }
+
+    /* 메뉴 링크 인디케이터 */
+    .nav-link {
+      position: relative;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #2d6a9f, #4a8ab5);
+      border-radius: 1px;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateX(-50%);
+    }
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    /* 버튼 글로우 */
+    @keyframes btnGlow {
+      0%, 100% { box-shadow: 0 0 5px rgba(30, 58, 95, 0.2); }
+      50% { box-shadow: 0 0 20px rgba(59, 130, 196, 0.4), 0 0 40px rgba(59, 130, 196, 0.1); }
+    }
+    .btn-glow { animation: btnGlow 3s ease-in-out infinite; }
+
+    /* 버튼 시머 */
+    .btn-shimmer { position: relative; overflow: hidden; }
+    .btn-shimmer::after {
+      content: '';
+      position: absolute;
+      top: -50%; left: -75%;
+      width: 50%; height: 200%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      transform: skewX(-25deg);
+      animation: shimmer 4s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0% { left: -75%; }
+      100% { left: 150%; }
+    }
+
+    /* 스태거 딜레이 */
+    .stagger-1 { transition-delay: 0.1s !important; }
+    .stagger-2 { transition-delay: 0.2s !important; }
+    .stagger-3 { transition-delay: 0.3s !important; }
+    .stagger-4 { transition-delay: 0.4s !important; }
+    .stagger-5 { transition-delay: 0.5s !important; }
+
+    /* 카드 호버 */
+    .resource-card {
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .resource-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(30, 58, 95, 0.12);
+    }
+
+    /* 검색바 포커스 */
+    .search-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 130, 196, 0.25);
+    }
+
+    /* 태그 호버 */
+    .tag-chip {
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+    .tag-chip:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 196, 0.2);
+    }
+
+    /* 사이드바 필터 */
+    .filter-option {
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+    .filter-option:hover {
+      background: rgba(59, 130, 196, 0.06);
+    }
+    .filter-option.active {
+      background: rgba(59, 130, 196, 0.1);
+      color: #1e3a5f;
+      font-weight: 600;
+    }
+
+    /* 모달 */
+    .modal-overlay {
+      background: rgba(15, 29, 47, 0.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* 프로그레스 바 */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #3b82c4, #5ba0db);
+      z-index: 9999;
+      transition: width 0.15s ease;
+    }
+
+    /* 파일 타입 아이콘 색상 */
+    .file-pdf { color: #ef4444; }
+    .file-ppt { color: #f97316; }
+    .file-hwp { color: #3b82f6; }
+    .file-video { color: #8b5cf6; }
+
+    /* 모바일 메뉴 */
+    .mobile-menu {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-menu.open {
+      max-height: 300px;
+    }
+  </style>
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="antialiased" style="color: #1e293b;">
+
+  <!-- 프로그레스 바 -->
+  <div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+
+  <!-- ==================== 네비게이션 ==================== -->
+  <nav class="glass-nav fixed top-0 left-0 right-0 z-50" id="navbar">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
+        <!-- 로고 -->
+        <a href="./index.html" class="flex items-center gap-3 spring-transition hover:opacity-80">
+          <img src="./logo.png" alt="MSECM" class="h-10 sm:h-12 w-auto" />
+        </a>
+
+        <!-- 데스크톱 메뉴 -->
+        <div class="hidden md:flex items-center gap-8">
+          <a href="#search-section" class="nav-link text-sm font-medium" style="color: #1e3a5f;">자료 검색</a>
+          <a href="#category-section" class="nav-link text-sm font-medium" style="color: #1e3a5f;">카테고리</a>
+          <a href="#upload-section" class="nav-link text-sm font-medium" style="color: #1e3a5f;">강사 업로드</a>
+          <button onclick="openLoginModal()" class="btn-shimmer px-5 py-2.5 rounded-xl text-sm font-semibold spring-transition hover:opacity-90" style="background-color: #1e3a5f; color: #fff;">
+            <iconify-icon icon="solar:login-3-bold-duotone" class="mr-1 align-middle" style="font-size: 1.1rem;"></iconify-icon>
+            강사 로그인
+          </button>
+        </div>
+
+        <!-- 모바일 메뉴 버튼 -->
+        <button class="md:hidden p-2 rounded-lg spring-transition" onclick="toggleMobileMenu()" style="color: #1e3a5f;">
+          <iconify-icon icon="solar:hamburger-menu-bold-duotone" id="menuIcon" style="font-size: 1.5rem;"></iconify-icon>
+        </button>
+      </div>
+
+      <!-- 모바일 메뉴 -->
+      <div class="mobile-menu md:hidden" id="mobileMenu">
+        <div class="pb-4 space-y-2">
+          <a href="#search-section" class="block px-4 py-2.5 rounded-lg text-sm font-medium spring-transition" style="color: #1e3a5f;" onclick="closeMobileMenu()">자료 검색</a>
+          <a href="#category-section" class="block px-4 py-2.5 rounded-lg text-sm font-medium spring-transition" style="color: #1e3a5f;" onclick="closeMobileMenu()">카테고리</a>
+          <a href="#upload-section" class="block px-4 py-2.5 rounded-lg text-sm font-medium spring-transition" style="color: #1e3a5f;" onclick="closeMobileMenu()">강사 업로드</a>
+          <button onclick="openLoginModal(); closeMobileMenu();" class="w-full text-left px-4 py-2.5 rounded-lg text-sm font-semibold" style="background-color: #1e3a5f; color: #fff;">강사 로그인</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ==================== 섹션 1: 히어로 ==================== -->
+  <section id="search-section" class="relative pt-28 sm:pt-36 pb-20 sm:pb-28 overflow-hidden" style="background: linear-gradient(135deg, #0f1d2f 0%, #1e3a5f 50%, #2d5a8a 100%);">
+    <!-- 배경 장식 -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute top-20 left-10 w-72 h-72 rounded-full opacity-10" style="background: radial-gradient(circle, #5ba0db, transparent);"></div>
+      <div class="absolute bottom-10 right-10 w-96 h-96 rounded-full opacity-8" style="background: radial-gradient(circle, #3b82c4, transparent);"></div>
+      <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(rgba(255,255,255,0.3) 1px, transparent 1px); background-size: 30px 30px;"></div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
+      <!-- 뱃지 -->
+      <div class="scroll-reveal inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-6" style="background: rgba(91, 160, 219, 0.15); color: #5ba0db; border: 1px solid rgba(91, 160, 219, 0.2);">
+        <iconify-icon icon="solar:library-bold-duotone" style="font-size: 1rem;"></iconify-icon>
+        MSECM 교육자료실
+      </div>
+
+      <!-- 제목 -->
+      <h1 class="scroll-reveal text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight mb-6" style="color: #ffffff;">
+        필요한 교육 자료를<br class="sm:hidden" />
+        <span style="background: linear-gradient(90deg, #5ba0db, #a5d8ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">빠르게 찾아보세요</span>
+      </h1>
+
+      <p class="scroll-reveal text-base sm:text-lg mb-10 max-w-2xl mx-auto" style="color: rgba(255,255,255,0.7);">
+        수업지도안, 활동지, 영상 등 다양한 교육 자료를 검색하고 다운로드하세요.
+      </p>
+
+      <!-- 검색바 -->
+      <div class="scroll-reveal max-w-2xl mx-auto">
+        <div class="flex items-center rounded-2xl overflow-hidden shadow-2xl" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);">
+          <div class="pl-5" style="color: #94a3b8;">
+            <iconify-icon icon="solar:magnifer-bold-duotone" style="font-size: 1.4rem;"></iconify-icon>
+          </div>
+          <input
+            type="text"
+            id="heroSearchInput"
+            class="search-input flex-1 px-4 py-4 sm:py-5 text-sm sm:text-base bg-transparent border-none"
+            placeholder="자료명, 과목, 키워드로 검색..."
+            style="color: #1e293b;"
+            oninput="handleSearch(this.value)"
+          />
+          <button onclick="scrollToResults()" class="btn-shimmer px-6 sm:px-8 py-4 sm:py-5 font-semibold text-sm sm:text-base spring-transition hover:opacity-90" style="background-color: #1e3a5f; color: #fff;">
+            검색
+          </button>
+        </div>
+      </div>
+
+      <!-- 추천 태그 -->
+      <div class="scroll-reveal flex flex-wrap justify-center gap-2 sm:gap-3 mt-6">
+        <span class="tag-chip px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium" style="background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85); border: 1px solid rgba(255,255,255,0.15);" onclick="setSearchTag(this.textContent)">디지털 리터러시</span>
+        <span class="tag-chip px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium" style="background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85); border: 1px solid rgba(255,255,255,0.15);" onclick="setSearchTag(this.textContent)">AI 수업</span>
+        <span class="tag-chip px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium" style="background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85); border: 1px solid rgba(255,255,255,0.15);" onclick="setSearchTag(this.textContent)">알지오매스</span>
+        <span class="tag-chip px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium" style="background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85); border: 1px solid rgba(255,255,255,0.15);" onclick="setSearchTag(this.textContent)">바이브코딩</span>
+      </div>
+    </div>
+
+    <!-- 하단 웨이브 -->
+    <div class="absolute bottom-0 left-0 right-0">
+      <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" class="w-full h-12 sm:h-16">
+        <path d="M0,40 C360,80 720,0 1080,40 C1260,60 1380,50 1440,40 L1440,80 L0,80 Z" fill="#f8fafc"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ==================== 섹션 2: 카테고리 필터 + 자료 목록 ==================== -->
+  <section id="category-section" class="py-16 sm:py-24" style="background-color: #f8fafc;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- 섹션 헤더 -->
+      <div class="text-center mb-12 scroll-reveal">
+        <h2 class="text-2xl sm:text-3xl font-bold mb-3" style="color: #1e3a5f;">교육 자료 라이브러리</h2>
+        <p class="text-sm sm:text-base" style="color: #64748b;">총 <span id="resultCount" class="font-bold" style="color: #3b82c4;">12</span>개의 자료가 있습니다</p>
+      </div>
+
+      <div class="flex flex-col lg:flex-row gap-8">
+
+        <!-- 좌측 사이드바 -->
+        <aside class="lg:w-64 flex-shrink-0 scroll-reveal">
+          <div class="rounded-2xl p-5 sm:p-6 shadow-sm" style="background-color: #ffffff; border: 1px solid #e2e8f0;">
+
+            <!-- 모바일 필터 토글 -->
+            <button class="lg:hidden flex items-center justify-between w-full mb-4 text-sm font-semibold" style="color: #1e3a5f;" onclick="toggleFilter()">
+              <span class="flex items-center gap-2">
+                <iconify-icon icon="solar:filter-bold-duotone" style="font-size: 1.2rem;"></iconify-icon>
+                필터
+              </span>
+              <iconify-icon icon="solar:alt-arrow-down-bold" id="filterArrow" class="spring-transition" style="font-size: 1rem;"></iconify-icon>
+            </button>
+
+            <div id="filterContent" class="lg:block">
+              <!-- 자료 유형 -->
+              <div class="mb-6">
+                <h3 class="text-xs font-bold uppercase tracking-wider mb-3" style="color: #94a3b8;">자료 유형</h3>
+                <div class="space-y-1">
+                  <div class="filter-option px-3 py-2 rounded-lg text-sm active" data-filter="type" data-value="전체" onclick="setFilter('type', '전체', this)">전체</div>
+                  <div class="filter-option px-3 py-2 rounded-lg text-sm" data-filter="type" data-value="수업지도안" onclick="setFilter('type', '수업지도안', this)">
+                    <iconify-icon icon="solar:document-text-bold-duotone" class="mr-1.5 align-middle file-pdf" style="font-size: 1rem;"></iconify-icon>수업지도안
+                  </div>
+                  <div class="filter-option px-3 py-2 rounded-lg text-sm" data-filter="type" data-value="활동지" onclick="setFilter('type', '활동지', this)">
+                    <iconify-icon icon="solar:clipboard-text-bold-duotone" class="mr-1.5 align-middle file-hwp" style="font-size: 1rem;"></iconify-icon>활동지
+                  </div>
+                  <div class="filter-option px-3 py-2 rounded-lg text-sm" data-filter="type" data-value="평가도구" onclick="setFilter('type', '평가도구', this)">
+                    <iconify-icon icon="solar:checklist-minimalistic-bold-duotone" class="mr-1.5 align-middle" style="font-size: 1rem; color: #10b981;"></iconify-icon>평가도구
+                  </div>
+                  <div class="filter-option px-3 py-2 rounded-lg text-sm" data-filter="type" data-value="참고자료" onclick="setFilter('type', '참고자료', this)">
+                    <iconify-icon icon="solar:book-2-bold-duotone" class="mr-1.5 align-middle" style="font-size: 1rem; color: #f59e0b;"></iconify-icon>참고자료
+                  </div>
+                  <div class="filter-option px-3 py-2 rounded-lg text-sm" data-filter="type" data-value="영상" onclick="setFilter('type', '영상', this)">
+                    <iconify-icon icon="solar:videocamera-record-bold-duotone" class="mr-1.5 align-middle file-video" style="font-size: 1rem;"></iconify-icon>영상
+                  </div>
+                </div>
+              </div>
+
+              <!-- 과목 -->
+              <div class="mb-6">
+                <h3 class="text-xs font-bold uppercase tracking-wider mb-3" style="color: #94a3b8;">과목</h3>
+                <div class="space-y-1">
+                  <div class="filter-option px-3 py-2 rounded-lg text-sm active" data-filter="subject" data-value="전체" onclick="setFilter('subject', '전체', this)">전체</div>
+                  <div class="filter-option px-3 py-2 rounded-lg text-sm" data-filter="subject" data-value="초등" onclick="setFilter('subject', '초등', this)">초등</div>
+                  <div class="filter-option px-3 py-2 rounded-lg text-sm" data-filter="subject" data-value="중등-영어" onclick="setFilter('subject', '중등-영어', this)">중등-영어</div>
+                  <div class="filter-option px-3 py-2 rounded-lg text-sm" data-filter="subject" data-value="중등-수학" onclick="setFilter('subject', '중등-수학', this)">중등-수학</div>
+                  <div class="filter-option px-3 py-2 rounded-lg text-sm" data-filter="subject" data-value="중등-정보" onclick="setFilter('subject', '중등-정보', this)">중등-정보</div>
+                </div>
+              </div>
+
+              <!-- 정렬 -->
+              <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider mb-3" style="color: #94a3b8;">정렬</h3>
+                <div class="space-y-1">
+                  <div class="filter-option px-3 py-2 rounded-lg text-sm active" data-filter="sort" data-value="최신순" onclick="setFilter('sort', '최신순', this)">최신순</div>
+                  <div class="filter-option px-3 py-2 rounded-lg text-sm" data-filter="sort" data-value="인기순" onclick="setFilter('sort', '인기순', this)">인기순</div>
+                  <div class="filter-option px-3 py-2 rounded-lg text-sm" data-filter="sort" data-value="이름순" onclick="setFilter('sort', '이름순', this)">이름순</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- 우측 자료 카드 그리드 -->
+        <div class="flex-1">
+          <!-- 검색 결과 상태 -->
+          <div id="searchStatus" class="hidden mb-4 px-4 py-3 rounded-xl text-sm font-medium" style="background-color: #eef4fa; color: #1e3a5f;">
+          </div>
+
+          <!-- 자료 카드 그리드 -->
+          <div id="resourceGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            <!-- JS로 동적 생성 -->
+          </div>
+
+          <!-- 결과 없음 -->
+          <div id="noResults" class="hidden text-center py-20">
+            <iconify-icon icon="solar:box-minimalistic-bold-duotone" style="font-size: 4rem; color: #cbd5e1;"></iconify-icon>
+            <p class="mt-4 text-lg font-semibold" style="color: #94a3b8;">검색 결과가 없습니다</p>
+            <p class="mt-1 text-sm" style="color: #cbd5e1;">다른 키워드로 검색해보세요</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 섹션 3: 강사 업로드 영역 ==================== -->
+  <section id="upload-section" class="py-16 sm:py-24" style="background-color: #ffffff;">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6">
+      <div class="text-center mb-12 scroll-reveal">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium mb-4" style="background-color: #eef4fa; color: #1e3a5f;">
+          <iconify-icon icon="solar:upload-minimalistic-bold-duotone" style="font-size: 1rem;"></iconify-icon>
+          강사 전용
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-bold mb-3" style="color: #1e3a5f;">교육 자료 업로드</h2>
+        <p class="text-sm sm:text-base" style="color: #64748b;">강사 계정으로 로그인하여 새로운 교육 자료를 공유하세요.</p>
+      </div>
+
+      <!-- 로그인 전: 로그인 유도 -->
+      <div id="uploadLoginPrompt" class="scroll-reveal rounded-2xl p-8 sm:p-12 text-center" style="background: linear-gradient(135deg, #f8fafc, #eef4fa); border: 2px dashed #cbd5e1;">
+        <iconify-icon icon="solar:lock-keyhole-minimalistic-bold-duotone" style="font-size: 3.5rem; color: #94a3b8;"></iconify-icon>
+        <p class="mt-4 text-lg font-semibold" style="color: #475569;">강사 로그인이 필요합니다</p>
+        <p class="mt-2 text-sm mb-6" style="color: #94a3b8;">자료를 업로드하려면 강사 계정으로 로그인하세요.</p>
+        <button onclick="openLoginModal()" class="btn-shimmer btn-glow inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm spring-transition hover:opacity-90" style="background-color: #1e3a5f; color: #fff;">
+          <iconify-icon icon="solar:login-3-bold-duotone" style="font-size: 1.1rem;"></iconify-icon>
+          강사 로그인
+        </button>
+      </div>
+
+      <!-- 로그인 후: 업로드 폼 -->
+      <div id="uploadForm" class="hidden scroll-reveal rounded-2xl p-6 sm:p-8 shadow-lg" style="background-color: #ffffff; border: 1px solid #e2e8f0;">
+        <!-- 로그인 상태 -->
+        <div class="flex items-center justify-between mb-8 pb-4" style="border-bottom: 1px solid #e2e8f0;">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: #eef4fa;">
+              <iconify-icon icon="solar:user-bold-duotone" style="font-size: 1.2rem; color: #1e3a5f;"></iconify-icon>
+            </div>
+            <div>
+              <p class="text-sm font-semibold" style="color: #1e3a5f;" id="loggedInName"></p>
+              <p class="text-xs" style="color: #94a3b8;">강사 계정</p>
+            </div>
+          </div>
+          <button onclick="logoutInstructor()" class="text-xs font-medium px-3 py-1.5 rounded-lg spring-transition hover:opacity-80" style="color: #ef4444; background-color: #fef2f2;">로그아웃</button>
+        </div>
+
+        <form onsubmit="handleUpload(event)">
+          <div class="space-y-5">
+            <!-- 제목 -->
+            <div>
+              <label class="block text-sm font-semibold mb-2" style="color: #1e3a5f;">자료 제목 <span style="color: #ef4444;">*</span></label>
+              <input type="text" id="uploadTitle" required class="w-full px-4 py-3 rounded-xl text-sm spring-transition" style="border: 1px solid #e2e8f0; color: #1e293b;" placeholder="자료 제목을 입력하세요" onfocus="this.style.borderColor='#3b82c4'" onblur="this.style.borderColor='#e2e8f0'" />
+            </div>
+
+            <!-- 설명 -->
+            <div>
+              <label class="block text-sm font-semibold mb-2" style="color: #1e3a5f;">설명</label>
+              <textarea id="uploadDesc" rows="3" class="w-full px-4 py-3 rounded-xl text-sm spring-transition resize-none" style="border: 1px solid #e2e8f0; color: #1e293b;" placeholder="자료에 대한 간단한 설명을 작성하세요" onfocus="this.style.borderColor='#3b82c4'" onblur="this.style.borderColor='#e2e8f0'"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <!-- 카테고리 -->
+              <div>
+                <label class="block text-sm font-semibold mb-2" style="color: #1e3a5f;">자료 유형 <span style="color: #ef4444;">*</span></label>
+                <select id="uploadType" required class="w-full px-4 py-3 rounded-xl text-sm spring-transition" style="border: 1px solid #e2e8f0; color: #1e293b;" onfocus="this.style.borderColor='#3b82c4'" onblur="this.style.borderColor='#e2e8f0'">
+                  <option value="">선택하세요</option>
+                  <option value="수업지도안">수업지도안</option>
+                  <option value="활동지">활동지</option>
+                  <option value="평가도구">평가도구</option>
+                  <option value="참고자료">참고자료</option>
+                  <option value="영상">영상</option>
+                </select>
+              </div>
+
+              <!-- 과목 -->
+              <div>
+                <label class="block text-sm font-semibold mb-2" style="color: #1e3a5f;">과목 <span style="color: #ef4444;">*</span></label>
+                <select id="uploadSubject" required class="w-full px-4 py-3 rounded-xl text-sm spring-transition" style="border: 1px solid #e2e8f0; color: #1e293b;" onfocus="this.style.borderColor='#3b82c4'" onblur="this.style.borderColor='#e2e8f0'">
+                  <option value="">선택하세요</option>
+                  <option value="초등">초등</option>
+                  <option value="중등-영어">중등-영어</option>
+                  <option value="중등-수학">중등-수학</option>
+                  <option value="중등-정보">중등-정보</option>
+                  <option value="전체">전체 (공통)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 파일 형식 -->
+            <div>
+              <label class="block text-sm font-semibold mb-2" style="color: #1e3a5f;">파일 형식 <span style="color: #ef4444;">*</span></label>
+              <select id="uploadFileType" required class="w-full px-4 py-3 rounded-xl text-sm spring-transition" style="border: 1px solid #e2e8f0; color: #1e293b;" onfocus="this.style.borderColor='#3b82c4'" onblur="this.style.borderColor='#e2e8f0'">
+                <option value="">선택하세요</option>
+                <option value="PDF">PDF</option>
+                <option value="PPT">PPT</option>
+                <option value="HWP">HWP</option>
+                <option value="영상">영상</option>
+              </select>
+            </div>
+
+            <!-- 파일 선택 (더미) -->
+            <div>
+              <label class="block text-sm font-semibold mb-2" style="color: #1e3a5f;">파일 첨부</label>
+              <div class="rounded-xl p-6 text-center cursor-pointer spring-transition hover:opacity-80" style="border: 2px dashed #cbd5e1; background-color: #f8fafc;" onclick="document.getElementById('fileInput').click()">
+                <iconify-icon icon="solar:cloud-upload-bold-duotone" style="font-size: 2.5rem; color: #94a3b8;"></iconify-icon>
+                <p class="mt-2 text-sm font-medium" style="color: #64748b;">클릭하여 파일을 선택하세요</p>
+                <p class="mt-1 text-xs" style="color: #94a3b8;">PDF, PPT, HWP, MP4 (최대 50MB)</p>
+                <p id="selectedFileName" class="mt-2 text-sm font-semibold hidden" style="color: #3b82c4;"></p>
+              </div>
+              <input type="file" id="fileInput" class="hidden" onchange="showFileName(this)" />
+            </div>
+
+            <!-- 업로드 버튼 -->
+            <button type="submit" class="btn-shimmer w-full py-3.5 rounded-xl font-semibold text-sm spring-transition hover:opacity-90 flex items-center justify-center gap-2" style="background-color: #1e3a5f; color: #fff;">
+              <iconify-icon icon="solar:upload-bold-duotone" style="font-size: 1.1rem;"></iconify-icon>
+              자료 업로드
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 업로드 성공 메시지 -->
+      <div id="uploadSuccess" class="hidden mt-4 px-5 py-4 rounded-xl text-sm font-medium flex items-center gap-2" style="background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;">
+        <iconify-icon icon="solar:check-circle-bold-duotone" style="font-size: 1.2rem;"></iconify-icon>
+        자료가 성공적으로 업로드되었습니다!
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 푸터 ==================== -->
+  <footer style="background-color: #0f1d2f;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+        <!-- 로고 + 정보 -->
+        <div class="text-center md:text-left">
+          <img src="./logo.png" alt="MSECM" class="h-10 w-auto mx-auto md:mx-0 mb-4 brightness-0 invert opacity-80" />
+          <p class="text-sm" style="color: rgba(255,255,255,0.5);">MSECM 글로컬 교육 그룹</p>
+          <p class="text-xs mt-2" style="color: rgba(255,255,255,0.3);">교육 혁신을 위한 전문가 네트워크</p>
+        </div>
+
+        <!-- 연락처 -->
+        <div class="text-center md:text-right space-y-2">
+          <div class="flex items-center justify-center md:justify-end gap-2 text-sm" style="color: rgba(255,255,255,0.5);">
+            <iconify-icon icon="solar:letter-bold-duotone" style="font-size: 1rem;"></iconify-icon>
+            msecm@education.kr
+          </div>
+          <div class="flex items-center justify-center md:justify-end gap-2 text-sm" style="color: rgba(255,255,255,0.5);">
+            <iconify-icon icon="solar:phone-bold-duotone" style="font-size: 1rem;"></iconify-icon>
+            02-1234-5678
+          </div>
+          <a href="./index.html" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-medium spring-transition hover:opacity-80 mt-2" style="color: #5ba0db;">
+            <iconify-icon icon="solar:home-2-bold-duotone" style="font-size: 1rem;"></iconify-icon>
+            MSECM 홈
+          </a>
+        </div>
+      </div>
+
+      <div class="mt-8 pt-6" style="border-top: 1px solid rgba(255,255,255,0.08);">
+        <p class="text-center text-xs" style="color: rgba(255,255,255,0.25);">&copy; 2025 MSECM Glocal Education Group. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== 로그인 모달 ==================== -->
+  <div id="loginModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4" style="display: none;">
+    <div class="modal-overlay absolute inset-0" onclick="closeLoginModal()"></div>
+    <div class="relative w-full max-w-md rounded-2xl p-6 sm:p-8 shadow-2xl spring-transition" style="background-color: #ffffff;">
+      <button onclick="closeLoginModal()" class="absolute top-4 right-4 p-1 rounded-lg spring-transition hover:opacity-60" style="color: #94a3b8;">
+        <iconify-icon icon="solar:close-circle-bold-duotone" style="font-size: 1.5rem;"></iconify-icon>
+      </button>
+
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4" style="background-color: #eef4fa;">
+          <iconify-icon icon="solar:shield-user-bold-duotone" style="font-size: 2rem; color: #1e3a5f;"></iconify-icon>
+        </div>
+        <h3 class="text-xl font-bold" style="color: #1e3a5f;">강사 로그인</h3>
+        <p class="mt-1 text-sm" style="color: #94a3b8;">강사 계정으로 로그인하세요</p>
+      </div>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold mb-1.5" style="color: #1e3a5f;">강사명</label>
+            <input type="text" id="loginName" required class="w-full px-4 py-3 rounded-xl text-sm" style="border: 1px solid #e2e8f0; color: #1e293b;" placeholder="이름을 입력하세요" onfocus="this.style.borderColor='#3b82c4'" onblur="this.style.borderColor='#e2e8f0'" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold mb-1.5" style="color: #1e3a5f;">비밀번호</label>
+            <input type="password" id="loginPassword" required class="w-full px-4 py-3 rounded-xl text-sm" style="border: 1px solid #e2e8f0; color: #1e293b;" placeholder="비밀번호를 입력하세요" onfocus="this.style.borderColor='#3b82c4'" onblur="this.style.borderColor='#e2e8f0'" />
+          </div>
+
+          <div id="loginError" class="hidden px-4 py-2.5 rounded-xl text-sm font-medium" style="background-color: #fef2f2; color: #ef4444; border: 1px solid #fecaca;">
+            강사명 또는 비밀번호가 일치하지 않습니다.
+          </div>
+
+          <button type="submit" class="btn-shimmer w-full py-3 rounded-xl font-semibold text-sm spring-transition hover:opacity-90" style="background-color: #1e3a5f; color: #fff;">
+            로그인
+          </button>
+        </div>
+      </form>
+
+      <p class="mt-4 text-center text-xs" style="color: #cbd5e1;">기본 계정: KTCS / 1234</p>
+    </div>
+  </div>
+
+
+  <!-- ==================== JavaScript ==================== -->
+  <script>
+    // ===== 더미 자료 데이터 =====
+    const resourceData = [
+      {
+        id: 1,
+        title: '디지털 기반 수업 설계 가이드',
+        desc: '디지털 도구를 활용한 효과적인 수업 설계 방법론과 사례 모음',
+        fileType: 'PDF',
+        category: '참고자료',
+        subject: '초등',
+        date: '2025-09-15',
+        downloads: 342,
+        keywords: ['디지털', '수업설계', '에듀테크', '디지털 리터러시']
+      },
+      {
+        id: 2,
+        title: '캔바 AI 활용 수업자료 제작법',
+        desc: 'Canva AI 기능을 활용하여 매력적인 수업 자료를 손쉽게 만드는 방법',
+        fileType: 'PPT',
+        category: '참고자료',
+        subject: '초등',
+        date: '2025-09-10',
+        downloads: 287,
+        keywords: ['캔바', 'AI', '수업자료', '디자인', 'AI 수업']
+      },
+      {
+        id: 3,
+        title: '알지오매스 블록코딩 활동지',
+        desc: '알지오매스 블록코딩을 활용한 수학 탐구 활동지 (10차시분)',
+        fileType: 'HWP',
+        category: '활동지',
+        subject: '중등-수학',
+        date: '2025-08-28',
+        downloads: 198,
+        keywords: ['알지오매스', '블록코딩', '수학', '활동지']
+      },
+      {
+        id: 4,
+        title: 'Desmos 수학 수업 활용 매뉴얼',
+        desc: 'Desmos 계산기와 활동 빌더를 활용한 인터랙티브 수학 수업 안내서',
+        fileType: 'PDF',
+        category: '수업지도안',
+        subject: '중등-수학',
+        date: '2025-08-20',
+        downloads: 256,
+        keywords: ['Desmos', '수학', '인터랙티브', '계산기']
+      },
+      {
+        id: 5,
+        title: '생성형 AI 영어 수업 프롬프트 모음',
+        desc: 'ChatGPT, Claude 등 생성형 AI를 영어 수업에 활용하는 프롬프트 50선',
+        fileType: 'PDF',
+        category: '참고자료',
+        subject: '중등-영어',
+        date: '2025-08-15',
+        downloads: 412,
+        keywords: ['AI', '영어', '프롬프트', '생성형AI', 'ChatGPT', 'AI 수업']
+      },
+      {
+        id: 6,
+        title: '구글 사이트 활용 수업교실 만들기',
+        desc: 'Google Sites로 온라인 수업 교실을 구축하는 과정을 담은 영상 튜토리얼',
+        fileType: '영상',
+        category: '영상',
+        subject: '초등',
+        date: '2025-08-10',
+        downloads: 178,
+        keywords: ['구글', '사이트', '온라인', '수업교실', '디지털']
+      },
+      {
+        id: 7,
+        title: 'NotebookLM 교육과정 비서 활용법',
+        desc: 'Google NotebookLM을 교육과정 분석 및 수업 준비 비서로 활용하는 방법',
+        fileType: 'PPT',
+        category: '참고자료',
+        subject: '중등-정보',
+        date: '2025-07-30',
+        downloads: 321,
+        keywords: ['NotebookLM', 'AI', '교육과정', '구글', 'AI 수업']
+      },
+      {
+        id: 8,
+        title: 'Apps Script 웹앱 개발 튜토리얼',
+        desc: 'Google Apps Script를 활용한 교육용 웹 애플리케이션 개발 가이드',
+        fileType: 'PDF',
+        category: '참고자료',
+        subject: '중등-정보',
+        date: '2025-07-25',
+        downloads: 145,
+        keywords: ['Apps Script', '웹앱', '개발', '코딩', '정보']
+      },
+      {
+        id: 9,
+        title: '바이브코딩 입문 가이드',
+        desc: 'AI를 활용한 새로운 코딩 패러다임, 바이브코딩의 개념과 실습 안내',
+        fileType: 'PDF',
+        category: '참고자료',
+        subject: '중등-정보',
+        date: '2025-07-20',
+        downloads: 389,
+        keywords: ['바이브코딩', 'AI', '코딩', '프로그래밍', '정보']
+      },
+      {
+        id: 10,
+        title: 'CODAP 데이터 분석 활동지',
+        desc: 'CODAP 플랫폼을 활용한 통계 및 데이터 분석 수업 활동지',
+        fileType: 'HWP',
+        category: '활동지',
+        subject: '중등-수학',
+        date: '2025-07-15',
+        downloads: 167,
+        keywords: ['CODAP', '데이터', '통계', '분석', '수학']
+      },
+      {
+        id: 11,
+        title: '디지털 수업 성찰 체크리스트',
+        desc: '디지털 도구 활용 수업 후 교사 자기 성찰을 위한 체크리스트',
+        fileType: 'PDF',
+        category: '평가도구',
+        subject: '전체',
+        date: '2025-07-10',
+        downloads: 234,
+        keywords: ['성찰', '체크리스트', '평가', '디지털', '디지털 리터러시']
+      },
+      {
+        id: 12,
+        title: '에듀테크 도구 비교 분석표',
+        desc: '주요 에듀테크 도구 30종의 기능, 가격, 활용도를 비교 분석한 자료',
+        fileType: 'PPT',
+        category: '참고자료',
+        subject: '전체',
+        date: '2025-07-05',
+        downloads: 456,
+        keywords: ['에듀테크', '비교', '분석', '도구', '디지털']
+      }
+    ];
+
+    // ===== 상태 관리 =====
+    let currentFilters = { type: '전체', subject: '전체', sort: '최신순' };
+    let searchQuery = '';
+    let isLoggedIn = false;
+    let loggedInUser = '';
+
+    // 기본 강사 계정
+    const defaultAccounts = [
+      { name: 'KTCS', password: '1234' },
+      { name: '홍길동', password: '1234' }
+    ];
+
+    // ===== 텍스트 이스케이프 (XSS 방지) =====
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.textContent === str ? str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;') : div.innerHTML;
+    }
+
+    // ===== 초기화 =====
+    document.addEventListener('DOMContentLoaded', function() {
+      renderResources();
+      initScrollReveal();
+      initProgressBar();
+      initNavScroll();
+      checkLoginStatus();
+
+      // 모바일에서 필터 기본 숨김
+      if (window.innerWidth < 1024) {
+        document.getElementById('filterContent').style.display = 'none';
+      }
+    });
+
+    // ===== 네비게이션 스크롤 =====
+    function initNavScroll() {
+      var nav = document.getElementById('navbar');
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 20) {
+          nav.classList.add('scrolled');
+        } else {
+          nav.classList.remove('scrolled');
+        }
+      });
+    }
+
+    // ===== 프로그레스 바 =====
+    function initProgressBar() {
+      var bar = document.getElementById('progressBar');
+      window.addEventListener('scroll', function() {
+        var scrollTop = window.scrollY;
+        var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        var progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        bar.style.width = progress + '%';
+      });
+    }
+
+    // ===== 스크롤 리빌 =====
+    function initScrollReveal() {
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+      document.querySelectorAll('.scroll-reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(function(el) {
+        observer.observe(el);
+      });
+    }
+
+    // ===== 모바일 메뉴 =====
+    function toggleMobileMenu() {
+      var menu = document.getElementById('mobileMenu');
+      var icon = document.getElementById('menuIcon');
+      menu.classList.toggle('open');
+      icon.setAttribute('icon', menu.classList.contains('open') ? 'solar:close-circle-bold-duotone' : 'solar:hamburger-menu-bold-duotone');
+    }
+    function closeMobileMenu() {
+      document.getElementById('mobileMenu').classList.remove('open');
+      document.getElementById('menuIcon').setAttribute('icon', 'solar:hamburger-menu-bold-duotone');
+    }
+
+    // ===== 모바일 필터 토글 =====
+    function toggleFilter() {
+      var content = document.getElementById('filterContent');
+      var arrow = document.getElementById('filterArrow');
+      if (content.style.display === 'none') {
+        content.style.display = 'block';
+        arrow.style.transform = 'rotate(180deg)';
+      } else {
+        content.style.display = 'none';
+        arrow.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    // ===== 검색 =====
+    function handleSearch(value) {
+      searchQuery = value.trim().toLowerCase();
+      renderResources();
+    }
+
+    function setSearchTag(tag) {
+      var input = document.getElementById('heroSearchInput');
+      input.value = tag;
+      searchQuery = tag.toLowerCase();
+      renderResources();
+      scrollToResults();
+    }
+
+    function scrollToResults() {
+      document.getElementById('category-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ===== 필터 =====
+    function setFilter(filterType, value, el) {
+      currentFilters[filterType] = value;
+
+      // 같은 그룹의 active 제거
+      var parent = el.parentElement;
+      parent.querySelectorAll('.filter-option').forEach(function(opt) { opt.classList.remove('active'); });
+      el.classList.add('active');
+
+      renderResources();
+    }
+
+    // ===== 자료 렌더링 (안전한 DOM 조작) =====
+    function renderResources() {
+      // localStorage에서 업로드된 자료 불러오기
+      var uploaded = [];
+      try {
+        uploaded = JSON.parse(localStorage.getItem('msecm_uploaded') || '[]');
+      } catch(e) { uploaded = []; }
+      var allData = resourceData.concat(uploaded);
+
+      // 검색 필터
+      if (searchQuery) {
+        allData = allData.filter(function(item) {
+          var searchTarget = (item.title + ' ' + item.desc + ' ' + item.subject + ' ' + item.category + ' ' + (item.keywords || []).join(' ')).toLowerCase();
+          return searchTarget.indexOf(searchQuery) !== -1;
+        });
+      }
+
+      // 유형 필터
+      if (currentFilters.type !== '전체') {
+        allData = allData.filter(function(item) { return item.category === currentFilters.type; });
+      }
+
+      // 과목 필터
+      if (currentFilters.subject !== '전체') {
+        allData = allData.filter(function(item) { return item.subject === currentFilters.subject || item.subject === '전체'; });
+      }
+
+      // 정렬
+      if (currentFilters.sort === '최신순') {
+        allData.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+      } else if (currentFilters.sort === '인기순') {
+        allData.sort(function(a, b) { return b.downloads - a.downloads; });
+      } else if (currentFilters.sort === '이름순') {
+        allData.sort(function(a, b) { return a.title.localeCompare(b.title, 'ko'); });
+      }
+
+      // 결과 수 업데이트
+      document.getElementById('resultCount').textContent = allData.length;
+
+      // 검색 상태 표시
+      var statusEl = document.getElementById('searchStatus');
+      if (searchQuery) {
+        statusEl.classList.remove('hidden');
+        statusEl.textContent = '';
+        var statusIcon = document.createElement('iconify-icon');
+        statusIcon.setAttribute('icon', 'solar:magnifer-bold-duotone');
+        statusIcon.className = 'mr-1.5 align-middle';
+        statusIcon.style.fontSize = '1rem';
+        statusEl.appendChild(statusIcon);
+        statusEl.appendChild(document.createTextNode('"' + searchQuery + '" 검색 결과: ' + allData.length + '건'));
+      } else {
+        statusEl.classList.add('hidden');
+      }
+
+      // 결과 없음 표시
+      var noResults = document.getElementById('noResults');
+      var grid = document.getElementById('resourceGrid');
+      if (allData.length === 0) {
+        noResults.classList.remove('hidden');
+        grid.textContent = '';
+        return;
+      }
+      noResults.classList.add('hidden');
+
+      // 카드 렌더링 (안전한 DOM 생성)
+      grid.textContent = '';
+      allData.forEach(function(item, idx) {
+        grid.appendChild(createResourceCard(item, idx));
+      });
+
+      // 새 카드 스크롤 리빌 등록
+      setTimeout(function() {
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('revealed');
+            }
+          });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.resource-card.scroll-reveal:not(.revealed)').forEach(function(el) {
+          observer.observe(el);
+        });
+      }, 50);
+    }
+
+    function createResourceCard(item, idx) {
+      var fileIcons = {
+        'PDF': { icon: 'solar:document-text-bold-duotone', cls: 'file-pdf', label: 'PDF' },
+        'PPT': { icon: 'solar:presentation-graph-bold-duotone', cls: 'file-ppt', label: 'PPT' },
+        'HWP': { icon: 'solar:clipboard-text-bold-duotone', cls: 'file-hwp', label: 'HWP' },
+        '영상': { icon: 'solar:videocamera-record-bold-duotone', cls: 'file-video', label: '영상' }
+      };
+
+      var subjectColors = {
+        '초등': { bg: '#fef3c7', color: '#b45309' },
+        '중등-영어': { bg: '#e0e7ff', color: '#4338ca' },
+        '중등-수학': { bg: '#f3e8ff', color: '#7c3aed' },
+        '중등-정보': { bg: '#fee2e2', color: '#dc2626' },
+        '전체': { bg: '#ecfdf5', color: '#059669' }
+      };
+
+      var fi = fileIcons[item.fileType] || fileIcons['PDF'];
+      var sc = subjectColors[item.subject] || subjectColors['전체'];
+      var delay = (idx % 6) * 0.08;
+
+      // 카드 컨테이너
+      var card = document.createElement('div');
+      card.className = 'resource-card scroll-reveal rounded-2xl overflow-hidden';
+      card.style.cssText = 'background-color: #ffffff; border: 1px solid #e2e8f0; transition-delay: ' + delay + 's;';
+
+      // 상단 영역
+      var topRow = document.createElement('div');
+      topRow.className = 'px-5 pt-5 pb-3 flex items-start justify-between';
+
+      var leftTop = document.createElement('div');
+      leftTop.className = 'flex items-center gap-3';
+
+      var iconBox = document.createElement('div');
+      iconBox.className = 'w-11 h-11 rounded-xl flex items-center justify-center';
+      iconBox.style.backgroundColor = '#f1f5f9';
+      var fileIcon = document.createElement('iconify-icon');
+      fileIcon.setAttribute('icon', fi.icon);
+      fileIcon.className = fi.cls;
+      fileIcon.style.fontSize = '1.4rem';
+      iconBox.appendChild(fileIcon);
+
+      var fileLabel = document.createElement('span');
+      fileLabel.className = 'text-xs font-bold px-2.5 py-1 rounded-md';
+      fileLabel.style.cssText = 'background-color: #f1f5f9; color: #64748b;';
+      fileLabel.textContent = fi.label;
+
+      leftTop.appendChild(iconBox);
+      leftTop.appendChild(fileLabel);
+
+      var subjectTag = document.createElement('span');
+      subjectTag.className = 'text-xs font-medium px-2.5 py-1 rounded-full';
+      subjectTag.style.cssText = 'background-color: ' + sc.bg + '; color: ' + sc.color + ';';
+      subjectTag.textContent = item.subject;
+
+      topRow.appendChild(leftTop);
+      topRow.appendChild(subjectTag);
+
+      // 내용 영역
+      var contentArea = document.createElement('div');
+      contentArea.className = 'px-5 pb-3';
+
+      var title = document.createElement('h3');
+      title.className = 'text-sm font-bold leading-snug mb-1.5';
+      title.style.color = '#1e3a5f';
+      title.textContent = item.title;
+
+      var desc = document.createElement('p');
+      desc.className = 'text-xs leading-relaxed';
+      desc.style.cssText = 'color: #94a3b8; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;';
+      desc.textContent = item.desc;
+
+      contentArea.appendChild(title);
+      contentArea.appendChild(desc);
+
+      // 메타 + 다운로드
+      var bottomRow = document.createElement('div');
+      bottomRow.className = 'px-5 pb-5 flex items-center justify-between';
+
+      var metaArea = document.createElement('div');
+      metaArea.className = 'flex items-center gap-3 text-xs';
+      metaArea.style.color = '#94a3b8';
+
+      var dateSpan = document.createElement('span');
+      dateSpan.className = 'flex items-center gap-1';
+      var calIcon = document.createElement('iconify-icon');
+      calIcon.setAttribute('icon', 'solar:calendar-minimalistic-bold-duotone');
+      calIcon.style.fontSize = '0.85rem';
+      dateSpan.appendChild(calIcon);
+      dateSpan.appendChild(document.createTextNode(item.date));
+
+      var dlCountSpan = document.createElement('span');
+      dlCountSpan.className = 'flex items-center gap-1';
+      var dlIcon = document.createElement('iconify-icon');
+      dlIcon.setAttribute('icon', 'solar:download-minimalistic-bold-duotone');
+      dlIcon.style.fontSize = '0.85rem';
+      dlCountSpan.appendChild(dlIcon);
+      dlCountSpan.appendChild(document.createTextNode(String(item.downloads)));
+
+      metaArea.appendChild(dateSpan);
+      metaArea.appendChild(dlCountSpan);
+
+      var dlBtn = document.createElement('button');
+      dlBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold spring-transition hover:opacity-80';
+      dlBtn.style.cssText = 'background-color: #eef4fa; color: #1e3a5f;';
+      dlBtn.onclick = (function(id, t) { return function() { handleDownload(id, t); }; })(item.id, item.title);
+      var dlBtnIcon = document.createElement('iconify-icon');
+      dlBtnIcon.setAttribute('icon', 'solar:download-bold-duotone');
+      dlBtnIcon.style.fontSize = '0.9rem';
+      dlBtn.appendChild(dlBtnIcon);
+      dlBtn.appendChild(document.createTextNode('다운로드'));
+
+      bottomRow.appendChild(metaArea);
+      bottomRow.appendChild(dlBtn);
+
+      // 조립
+      card.appendChild(topRow);
+      card.appendChild(contentArea);
+      card.appendChild(bottomRow);
+
+      return card;
+    }
+
+    // ===== 다운로드 처리 (더미) =====
+    function handleDownload(id, title) {
+      var item = resourceData.find(function(r) { return r.id === id; });
+      if (item) item.downloads++;
+      showToast('"' + title + '" 다운로드가 시작되었습니다.');
+      renderResources();
+    }
+
+    // ===== 토스트 알림 =====
+    function showToast(message) {
+      var toast = document.createElement('div');
+      toast.className = 'fixed bottom-6 right-6 z-[70] px-5 py-3 rounded-xl text-sm font-medium shadow-2xl spring-transition';
+      toast.style.cssText = 'background-color: #1e3a5f; color: #fff; transform: translateY(20px); opacity: 0;';
+
+      var toastInner = document.createElement('div');
+      toastInner.className = 'flex items-center gap-2';
+      var toastIcon = document.createElement('iconify-icon');
+      toastIcon.setAttribute('icon', 'solar:check-circle-bold-duotone');
+      toastIcon.style.cssText = 'font-size: 1.1rem; color: #5ba0db;';
+      toastInner.appendChild(toastIcon);
+      toastInner.appendChild(document.createTextNode(message));
+      toast.appendChild(toastInner);
+
+      document.body.appendChild(toast);
+
+      requestAnimationFrame(function() {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+      });
+
+      setTimeout(function() {
+        toast.style.transform = 'translateY(20px)';
+        toast.style.opacity = '0';
+        setTimeout(function() { toast.remove(); }, 400);
+      }, 3000);
+    }
+
+    // ===== 로그인 모달 =====
+    function openLoginModal() {
+      var modal = document.getElementById('loginModal');
+      modal.style.display = 'flex';
+      modal.classList.remove('hidden');
+      document.getElementById('loginError').classList.add('hidden');
+      document.getElementById('loginName').value = '';
+      document.getElementById('loginPassword').value = '';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLoginModal() {
+      var modal = document.getElementById('loginModal');
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      var name = document.getElementById('loginName').value.trim();
+      var password = document.getElementById('loginPassword').value;
+
+      var account = defaultAccounts.find(function(a) { return a.name === name && a.password === password; });
+      if (account) {
+        isLoggedIn = true;
+        loggedInUser = name;
+        localStorage.setItem('msecm_instructor', name);
+        closeLoginModal();
+        updateLoginUI();
+        showToast(name + ' 강사님, 환영합니다!');
+      } else {
+        document.getElementById('loginError').classList.remove('hidden');
+      }
+    }
+
+    function logoutInstructor() {
+      isLoggedIn = false;
+      loggedInUser = '';
+      localStorage.removeItem('msecm_instructor');
+      updateLoginUI();
+      showToast('로그아웃되었습니다.');
+    }
+
+    function checkLoginStatus() {
+      var saved = localStorage.getItem('msecm_instructor');
+      if (saved) {
+        isLoggedIn = true;
+        loggedInUser = saved;
+        updateLoginUI();
+      }
+    }
+
+    function updateLoginUI() {
+      var prompt = document.getElementById('uploadLoginPrompt');
+      var form = document.getElementById('uploadForm');
+      var nameEl = document.getElementById('loggedInName');
+
+      if (isLoggedIn) {
+        prompt.classList.add('hidden');
+        form.classList.remove('hidden');
+        nameEl.textContent = loggedInUser + ' 강사';
+      } else {
+        prompt.classList.remove('hidden');
+        form.classList.add('hidden');
+      }
+    }
+
+    // ===== 파일 업로드 =====
+    function showFileName(input) {
+      var nameEl = document.getElementById('selectedFileName');
+      if (input.files.length > 0) {
+        nameEl.textContent = input.files[0].name;
+        nameEl.classList.remove('hidden');
+      }
+    }
+
+    function handleUpload(e) {
+      e.preventDefault();
+
+      var title = document.getElementById('uploadTitle').value.trim();
+      var desc = document.getElementById('uploadDesc').value.trim();
+      var type = document.getElementById('uploadType').value;
+      var subject = document.getElementById('uploadSubject').value;
+      var fileType = document.getElementById('uploadFileType').value;
+
+      if (!title || !type || !subject || !fileType) {
+        showToast('필수 항목을 모두 입력해주세요.');
+        return;
+      }
+
+      // 입력값 길이 제한 (안전)
+      if (title.length > 200 || desc.length > 1000) {
+        showToast('입력값이 너무 깁니다.');
+        return;
+      }
+
+      // 허용된 값만 저장
+      var allowedTypes = ['수업지도안', '활동지', '평가도구', '참고자료', '영상'];
+      var allowedSubjects = ['초등', '중등-영어', '중등-수학', '중등-정보', '전체'];
+      var allowedFileTypes = ['PDF', 'PPT', 'HWP', '영상'];
+
+      if (allowedTypes.indexOf(type) === -1 || allowedSubjects.indexOf(subject) === -1 || allowedFileTypes.indexOf(fileType) === -1) {
+        showToast('유효하지 않은 선택입니다.');
+        return;
+      }
+
+      // 새 자료 객체
+      var newResource = {
+        id: Date.now(),
+        title: title,
+        desc: desc || '설명이 없습니다.',
+        fileType: fileType,
+        category: type,
+        subject: subject,
+        date: new Date().toISOString().split('T')[0],
+        downloads: 0,
+        keywords: [title, type, subject, fileType]
+      };
+
+      // localStorage에 저장
+      var uploaded = [];
+      try {
+        uploaded = JSON.parse(localStorage.getItem('msecm_uploaded') || '[]');
+      } catch(err) { uploaded = []; }
+
+      // 최대 50개 제한
+      if (uploaded.length >= 50) {
+        showToast('업로드 가능한 최대 수량에 도달했습니다.');
+        return;
+      }
+
+      uploaded.push(newResource);
+      localStorage.setItem('msecm_uploaded', JSON.stringify(uploaded));
+
+      // 폼 초기화
+      document.getElementById('uploadTitle').value = '';
+      document.getElementById('uploadDesc').value = '';
+      document.getElementById('uploadType').value = '';
+      document.getElementById('uploadSubject').value = '';
+      document.getElementById('uploadFileType').value = '';
+      document.getElementById('selectedFileName').classList.add('hidden');
+      document.getElementById('fileInput').value = '';
+
+      // 성공 메시지
+      var successEl = document.getElementById('uploadSuccess');
+      successEl.classList.remove('hidden');
+      setTimeout(function() { successEl.classList.add('hidden'); }, 4000);
+
+      // 목록 갱신
+      renderResources();
+      showToast('"' + title + '" 자료가 업로드되었습니다!');
+    }
+  </script>
+
+</body>
+</html>

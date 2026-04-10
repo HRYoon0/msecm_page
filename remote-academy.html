@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MSECM 원격연수원 — 온라인 교육 플랫폼</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwindcss.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Pretendard 폰트 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />
+
+  <!-- Iconify -->
+  <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+
+  <style>
+    * { word-break: keep-all; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+
+    .spring-transition { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(2rem);
+      filter: blur(4px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .scroll-reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+
+    .reveal-left { opacity: 0; transform: translateX(-3rem); transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal-right { opacity: 0; transform: translateX(3rem); transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal-scale { opacity: 0; transform: scale(0.85); transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal-left.revealed, .reveal-right.revealed, .reveal-scale.revealed {
+      opacity: 1; transform: translateX(0) scale(1);
+    }
+
+    @keyframes btnGlow {
+      0%, 100% { box-shadow: 0 0 5px rgba(30, 58, 95, 0.2); }
+      50% { box-shadow: 0 0 20px rgba(59, 130, 196, 0.4), 0 0 40px rgba(59, 130, 196, 0.1); }
+    }
+    .btn-glow { animation: btnGlow 3s ease-in-out infinite; }
+
+    .btn-shimmer { position: relative; overflow: hidden; }
+    .btn-shimmer::after {
+      content: '';
+      position: absolute;
+      top: -50%; left: -75%;
+      width: 50%; height: 200%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      transform: skewX(-25deg);
+      animation: shimmer 4s ease-in-out infinite;
+    }
+    @keyframes shimmer { 0% { left: -75%; } 100% { left: 150%; } }
+
+    .card-hover {
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(30, 58, 95, 0.1);
+    }
+
+    .glass-nav {
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.85);
+      border-bottom: 1px solid rgba(30, 58, 95, 0.08);
+    }
+    .glass-nav.scrolled {
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.06);
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #2d6a9f, #4a8ab5);
+      border-radius: 1px;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateX(-50%);
+    }
+    .nav-link:hover::after { width: 100%; }
+
+    .mobile-menu {
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mobile-menu.hidden { opacity: 0; pointer-events: none; transform: translateY(-10px); }
+    .mobile-menu.visible { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, #1e3a5f, #2d6a9f);
+      color: white;
+      box-shadow: 0 4px 15px rgba(30, 58, 95, 0.3);
+    }
+
+    /* 모달 */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal-content {
+      transform: translateY(30px) scale(0.95);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.active .modal-content {
+      transform: translateY(0) scale(1);
+    }
+
+    /* 프로그레스 바 */
+    .progress-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #1e3a5f, #3b82c4);
+      transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* 난이도 뱃지 */
+    .badge-beginner { background: #10b981; color: #fff; }
+    .badge-intermediate { background: #f59e0b; color: #fff; }
+    .badge-advanced { background: #ef4444; color: #fff; }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .gradient-animated { background-size: 200% 200%; animation: gradientShift 8s ease infinite; }
+
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(30, 58, 95, 0.12), transparent);
+    }
+  </style>
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-white antialiased" style="color: #0f1d2f;">
+
+  <!-- ==================== 네비게이션 ==================== -->
+  <nav id="navbar" class="glass-nav fixed top-0 left-0 right-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 lg:h-20">
+        <a href="#" class="flex items-center group">
+          <img src="./logo.png" alt="MSECM" class="h-10 sm:h-12 w-auto spring-transition group-hover:scale-105" />
+        </a>
+
+        <div class="hidden lg:flex items-center gap-1">
+          <a href="#courses" class="nav-link relative px-4 py-2 text-sm font-bold spring-transition" style="color: #1e3a5f;">전체 강좌</a>
+          <a href="#dashboard" class="nav-link relative px-4 py-2 text-sm font-medium spring-transition" style="color: #2d5a8a;">나의 학습</a>
+          <a href="#certificate" class="nav-link relative px-4 py-2 text-sm font-medium spring-transition" style="color: #2d5a8a;">수료증</a>
+          <button id="loginBtn" class="ml-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold spring-transition hover:scale-[1.02] hover:shadow-lg btn-shimmer" style="background-color: #1e3a5f; color: #ffffff;">
+            <span class="iconify w-4 h-4" data-icon="solar:user-circle-linear" style="color: #ffffff;"></span>
+            로그인
+          </button>
+        </div>
+
+        <!-- 모바일 메뉴 버튼 -->
+        <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-lg" style="color: #1e3a5f;">
+          <span class="iconify w-6 h-6" data-icon="solar:hamburger-menu-linear"></span>
+        </button>
+      </div>
+
+      <!-- 모바일 메뉴 -->
+      <div id="mobileMenu" class="mobile-menu hidden lg:hidden pb-4">
+        <div class="flex flex-col gap-2">
+          <a href="#courses" class="px-4 py-2 rounded-lg text-sm font-medium mobile-link" style="color: #1e3a5f;">전체 강좌</a>
+          <a href="#dashboard" class="px-4 py-2 rounded-lg text-sm font-medium mobile-link" style="color: #2d5a8a;">나의 학습</a>
+          <a href="#certificate" class="px-4 py-2 rounded-lg text-sm font-medium mobile-link" style="color: #2d5a8a;">수료증</a>
+          <button id="mobileLoginBtn" class="mt-2 px-5 py-2.5 rounded-full text-sm font-semibold" style="background-color: #1e3a5f; color: #ffffff;">로그인</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- ==================== 히어로 섹션 ==================== -->
+  <section class="relative min-h-[90vh] flex items-center overflow-hidden gradient-animated" style="background: linear-gradient(135deg, #0f1d2f, #1e3a5f, #2d5a8a);">
+    <!-- 장식 요소 -->
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="absolute top-20 left-10 w-72 h-72 rounded-full opacity-10" style="background: radial-gradient(circle, #5ba0db, transparent);"></div>
+      <div class="absolute bottom-20 right-10 w-96 h-96 rounded-full opacity-8" style="background: radial-gradient(circle, #3b82c4, transparent);"></div>
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-5" style="background: radial-gradient(circle, #ffffff, transparent);"></div>
+    </div>
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center">
+      <div class="scroll-reveal">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-6" style="background: rgba(255,255,255,0.1); color: #5ba0db; border: 1px solid rgba(91,160,219,0.3);">
+          <span class="iconify w-4 h-4" data-icon="solar:monitor-smartphone-linear" style="color: #5ba0db;"></span>
+          MSECM 원격연수원
+        </div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6" style="color: #ffffff;">
+          언제 어디서나,<br />나만의 속도로 배우는<br />
+          <span style="background: linear-gradient(135deg, #5ba0db, #3b82c4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">디지털 교육</span>
+        </h1>
+        <p class="text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed" style="color: rgba(255,255,255,0.7);">
+          AI, 수학, 영어, 정보 등 다양한 교과목의 온라인 직무연수를 제공합니다.<br class="hidden sm:block" />
+          교사의 디지털 역량을 강화하는 체계적인 원격 학습 프로그램을 만나보세요.
+        </p>
+
+        <!-- 검색바 -->
+        <div class="max-w-xl mx-auto relative">
+          <div class="flex items-center rounded-2xl overflow-hidden shadow-2xl" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);">
+            <span class="iconify w-5 h-5 ml-5 flex-shrink-0" data-icon="solar:magnifer-linear" style="color: rgba(255,255,255,0.5);"></span>
+            <input id="heroSearch" type="text" placeholder="강좌명, 키워드로 검색..." class="w-full bg-transparent px-4 py-4 text-base outline-none placeholder-white/40" style="color: #ffffff;" />
+            <button id="heroSearchBtn" class="px-6 py-3 mr-1 rounded-xl text-sm font-semibold spring-transition hover:opacity-90" style="background-color: #3b82c4; color: #ffffff;">
+              검색
+            </button>
+          </div>
+        </div>
+
+        <!-- 통계 -->
+        <div class="flex flex-wrap justify-center gap-8 mt-12">
+          <div class="text-center">
+            <div class="text-2xl sm:text-3xl font-bold" style="color: #ffffff;">50+</div>
+            <div class="text-sm mt-1" style="color: rgba(255,255,255,0.5);">온라인 강좌</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl sm:text-3xl font-bold" style="color: #ffffff;">1,200+</div>
+            <div class="text-sm mt-1" style="color: rgba(255,255,255,0.5);">수강생</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl sm:text-3xl font-bold" style="color: #ffffff;">98%</div>
+            <div class="text-sm mt-1" style="color: rgba(255,255,255,0.5);">만족도</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 하단 웨이브 -->
+    <div class="absolute bottom-0 left-0 right-0">
+      <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" class="w-full h-16">
+        <path d="M0 40C240 70 480 10 720 40C960 70 1200 10 1440 40V80H0V40Z" fill="#ffffff"/>
+      </svg>
+    </div>
+  </section>
+
+
+  <!-- ==================== 강좌 카테고리 섹션 ==================== -->
+  <section id="courses" class="py-20 sm:py-28">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12 scroll-reveal">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase mb-4" style="background-color: rgba(59,130,196,0.1); color: #3b82c4;">
+          <span class="iconify w-3.5 h-3.5" data-icon="solar:library-linear" style="color: #3b82c4;"></span>
+          온라인 강좌
+        </div>
+        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-4" style="color: #1e3a5f;">전체 강좌 둘러보기</h2>
+        <p class="text-base sm:text-lg max-w-2xl mx-auto" style="color: #4a8ab5;">원하는 분야의 강좌를 선택하고 자유롭게 학습하세요</p>
+      </div>
+
+      <!-- 필터 탭 -->
+      <div id="filterTabs" class="flex flex-wrap justify-center gap-2 mb-10 scroll-reveal">
+        <button data-filter="all" class="filter-btn active px-5 py-2.5 rounded-full text-sm font-medium spring-transition">전체</button>
+        <button data-filter="ai" class="filter-btn px-5 py-2.5 rounded-full text-sm font-medium spring-transition" style="color: #1e3a5f; background: rgba(30,58,95,0.06);">AI·디지털</button>
+        <button data-filter="math" class="filter-btn px-5 py-2.5 rounded-full text-sm font-medium spring-transition" style="color: #1e3a5f; background: rgba(30,58,95,0.06);">수학</button>
+        <button data-filter="english" class="filter-btn px-5 py-2.5 rounded-full text-sm font-medium spring-transition" style="color: #1e3a5f; background: rgba(30,58,95,0.06);">영어</button>
+        <button data-filter="info" class="filter-btn px-5 py-2.5 rounded-full text-sm font-medium spring-transition" style="color: #1e3a5f; background: rgba(30,58,95,0.06);">정보</button>
+        <button data-filter="method" class="filter-btn px-5 py-2.5 rounded-full text-sm font-medium spring-transition" style="color: #1e3a5f; background: rgba(30,58,95,0.06);">교육방법론</button>
+      </div>
+
+      <!-- 강좌 카드 그리드 -->
+      <div id="courseGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- JS로 렌더링 -->
+      </div>
+    </div>
+  </section>
+
+
+  <div class="section-divider max-w-5xl mx-auto"></div>
+
+
+  <!-- ==================== 나의 학습 대시보드 ==================== -->
+  <section id="dashboard" class="py-20 sm:py-28" style="background: linear-gradient(180deg, #f8fafc, #ffffff);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12 scroll-reveal">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase mb-4" style="background-color: rgba(59,130,196,0.1); color: #3b82c4;">
+          <span class="iconify w-3.5 h-3.5" data-icon="solar:chart-2-linear" style="color: #3b82c4;"></span>
+          나의 학습
+        </div>
+        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-4" style="color: #1e3a5f;">나의 학습 대시보드</h2>
+        <p class="text-base sm:text-lg max-w-2xl mx-auto" style="color: #4a8ab5;">학습 진도와 수료 현황을 한눈에 확인하세요</p>
+      </div>
+
+      <!-- 비로그인 상태 -->
+      <div id="dashboardLoggedOut" class="scroll-reveal">
+        <div class="max-w-lg mx-auto text-center py-16 px-6 rounded-2xl" style="background: rgba(30,58,95,0.03); border: 2px dashed rgba(30,58,95,0.15);">
+          <span class="iconify w-16 h-16 mx-auto mb-4" data-icon="solar:lock-keyhole-minimalistic-linear" style="color: #3b82c4;"></span>
+          <h3 class="text-xl font-bold mb-2" style="color: #1e3a5f;">로그인이 필요합니다</h3>
+          <p class="text-sm mb-6" style="color: #4a8ab5;">나의 학습 현황과 수료증을 확인하려면 로그인해주세요.</p>
+          <button id="dashboardLoginBtn" class="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold spring-transition hover:scale-[1.02] hover:shadow-lg btn-shimmer" style="background-color: #1e3a5f; color: #ffffff;">
+            <span class="iconify w-4 h-4" data-icon="solar:login-3-linear" style="color: #ffffff;"></span>
+            로그인하기
+          </button>
+        </div>
+      </div>
+
+      <!-- 로그인 상태 -->
+      <div id="dashboardLoggedIn" class="hidden">
+        <!-- 학습 통계 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10 scroll-reveal">
+          <div class="p-6 rounded-2xl text-center card-hover" style="background: linear-gradient(135deg, #1e3a5f, #2d5a8a);">
+            <span class="iconify w-8 h-8 mx-auto mb-2" data-icon="solar:clock-circle-linear" style="color: #5ba0db;"></span>
+            <div class="text-2xl font-bold" style="color: #ffffff;" id="statHours">0h</div>
+            <div class="text-xs mt-1" style="color: rgba(255,255,255,0.6);">총 학습 시간</div>
+          </div>
+          <div class="p-6 rounded-2xl text-center card-hover" style="background: linear-gradient(135deg, #1e3a5f, #2d5a8a);">
+            <span class="iconify w-8 h-8 mx-auto mb-2" data-icon="solar:book-bookmark-linear" style="color: #5ba0db;"></span>
+            <div class="text-2xl font-bold" style="color: #ffffff;" id="statInProgress">0</div>
+            <div class="text-xs mt-1" style="color: rgba(255,255,255,0.6);">수강 중</div>
+          </div>
+          <div class="p-6 rounded-2xl text-center card-hover" style="background: linear-gradient(135deg, #1e3a5f, #2d5a8a);">
+            <span class="iconify w-8 h-8 mx-auto mb-2" data-icon="solar:check-circle-linear" style="color: #5ba0db;"></span>
+            <div class="text-2xl font-bold" style="color: #ffffff;" id="statCompleted">0</div>
+            <div class="text-xs mt-1" style="color: rgba(255,255,255,0.6);">완료 강좌</div>
+          </div>
+          <div class="p-6 rounded-2xl text-center card-hover" style="background: linear-gradient(135deg, #1e3a5f, #2d5a8a);">
+            <span class="iconify w-8 h-8 mx-auto mb-2" data-icon="solar:medal-ribbons-star-linear" style="color: #5ba0db;"></span>
+            <div class="text-2xl font-bold" style="color: #ffffff;" id="statBadges">0</div>
+            <div class="text-xs mt-1" style="color: rgba(255,255,255,0.6);">획득 뱃지</div>
+          </div>
+        </div>
+
+        <!-- 수강 중인 강좌 -->
+        <div class="mb-10">
+          <h3 class="text-lg font-bold mb-4" style="color: #1e3a5f;">
+            <span class="iconify w-5 h-5 inline mr-1" data-icon="solar:play-circle-linear" style="color: #3b82c4;"></span>
+            수강 중인 강좌
+          </h3>
+          <div id="inProgressCourses" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          </div>
+          <p id="noInProgress" class="hidden text-center py-8 text-sm" style="color: #4a8ab5;">수강 중인 강좌가 없습니다. 새로운 강좌를 시작해보세요!</p>
+        </div>
+
+        <!-- 완료 강좌 -->
+        <div>
+          <h3 class="text-lg font-bold mb-4" style="color: #1e3a5f;">
+            <span class="iconify w-5 h-5 inline mr-1" data-icon="solar:check-circle-linear" style="color: #10b981;"></span>
+            완료된 강좌
+          </h3>
+          <div id="completedCourses" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          </div>
+          <p id="noCompleted" class="hidden text-center py-8 text-sm" style="color: #4a8ab5;">아직 완료한 강좌가 없습니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==================== 수료증 섹션 ==================== -->
+  <section id="certificate" class="py-20 sm:py-28">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12 scroll-reveal">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase mb-4" style="background-color: rgba(59,130,196,0.1); color: #3b82c4;">
+          <span class="iconify w-3.5 h-3.5" data-icon="solar:diploma-verified-linear" style="color: #3b82c4;"></span>
+          수료증
+        </div>
+        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-4" style="color: #1e3a5f;">수료증 발급</h2>
+        <p class="text-base sm:text-lg max-w-2xl mx-auto" style="color: #4a8ab5;">강좌를 100% 완료하면 수료증이 자동으로 발급됩니다</p>
+      </div>
+
+      <div id="certificateLoggedOut" class="scroll-reveal">
+        <div class="max-w-lg mx-auto text-center py-16 px-6 rounded-2xl" style="background: rgba(30,58,95,0.03); border: 2px dashed rgba(30,58,95,0.15);">
+          <span class="iconify w-16 h-16 mx-auto mb-4" data-icon="solar:diploma-verified-linear" style="color: #3b82c4;"></span>
+          <h3 class="text-xl font-bold mb-2" style="color: #1e3a5f;">로그인 후 확인 가능</h3>
+          <p class="text-sm mb-6" style="color: #4a8ab5;">수료증 목록은 로그인 후 확인하실 수 있습니다.</p>
+          <button id="certLoginBtn" class="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold spring-transition hover:scale-[1.02]" style="background-color: #1e3a5f; color: #ffffff;">로그인하기</button>
+        </div>
+      </div>
+
+      <div id="certificateLoggedIn" class="hidden">
+        <div id="certificateList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        </div>
+        <p id="noCertificate" class="hidden text-center py-8 text-sm" style="color: #4a8ab5;">아직 발급된 수료증이 없습니다. 강좌를 완료하면 자동으로 발급됩니다.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==================== 푸터 ==================== -->
+  <footer style="background-color: #0f1d2f; color: #7da8d4;" class="pt-12 pb-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-8 pb-8" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <div>
+          <img src="./logo.png" alt="MSECM" class="h-10 w-auto brightness-0 invert opacity-80" />
+        </div>
+        <div class="flex flex-wrap gap-4 text-sm">
+          <a href="#courses" style="color: #ffffff; font-weight: 600;">전체 강좌</a>
+          <a href="#dashboard" class="hover:text-white spring-transition" style="color: #7da8d4;">나의 학습</a>
+          <a href="#certificate" class="hover:text-white spring-transition" style="color: #7da8d4;">수료증</a>
+          <a href="./index.html" target="_blank" class="hover:text-white spring-transition" style="color: #7da8d4;">MSECM 홈</a>
+        </div>
+      </div>
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs" style="color: #4a8ab5;">
+        <p>&copy; 2026 MSECM. All rights reserved. | 사업자등록번호: 146-88-02199</p>
+        <div class="flex flex-wrap items-center gap-4">
+          <span>TEL: 055-715-8854</span>
+          <span>FAX: 0505-275-8855</span>
+          <span>yeajin@msecm.co.kr</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ==================== 로그인 모달 ==================== -->
+  <div id="loginModal" class="modal-overlay">
+    <div class="modal-content fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 pointer-events-auto relative">
+        <button id="closeLoginBtn" class="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 spring-transition">
+          <span class="iconify w-5 h-5" data-icon="solar:close-circle-linear" style="color: #4a8ab5;"></span>
+        </button>
+        <div class="text-center mb-6">
+          <span class="iconify w-12 h-12 mx-auto mb-3" data-icon="solar:user-circle-bold-duotone" style="color: #1e3a5f;"></span>
+          <h3 class="text-xl font-bold" style="color: #1e3a5f;">로그인</h3>
+          <p class="text-sm mt-1" style="color: #4a8ab5;">닉네임과 비밀번호를 입력해주세요</p>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1" style="color: #1e3a5f;">닉네임</label>
+            <input id="loginNickname" type="text" placeholder="닉네임을 입력하세요" class="w-full px-4 py-3 rounded-xl text-sm outline-none spring-transition" style="border: 2px solid #e5e7eb; color: #0f1d2f;" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1" style="color: #1e3a5f;">비밀번호</label>
+            <input id="loginPassword" type="password" placeholder="비밀번호를 입력하세요" class="w-full px-4 py-3 rounded-xl text-sm outline-none spring-transition" style="border: 2px solid #e5e7eb; color: #0f1d2f;" />
+          </div>
+          <p id="loginError" class="text-xs hidden" style="color: #ef4444;">닉네임과 비밀번호를 모두 입력해주세요.</p>
+          <button id="doLoginBtn" class="w-full py-3 rounded-xl text-sm font-semibold spring-transition hover:opacity-90 btn-shimmer" style="background-color: #1e3a5f; color: #ffffff;">
+            로그인 / 회원가입
+          </button>
+          <p class="text-xs text-center" style="color: #4a8ab5;">처음 로그인하면 자동으로 계정이 생성됩니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== 강좌 상세 모달 ==================== -->
+  <div id="courseModal" class="modal-overlay">
+    <div class="modal-content fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto pointer-events-auto relative">
+        <button id="closeCourseBtn" class="absolute top-4 right-4 z-10 p-1.5 rounded-full spring-transition" style="background: rgba(255,255,255,0.9);">
+          <span class="iconify w-5 h-5" data-icon="solar:close-circle-linear" style="color: #4a8ab5;"></span>
+        </button>
+
+        <!-- 영상 플레이어 영역 -->
+        <div class="relative aspect-video w-full rounded-t-2xl flex items-center justify-center" style="background: linear-gradient(135deg, #0f1d2f, #1e3a5f);">
+          <div class="text-center">
+            <span class="iconify w-16 h-16 mx-auto mb-2 opacity-80" data-icon="solar:play-circle-bold" style="color: #5ba0db;"></span>
+            <p class="text-sm" style="color: rgba(255,255,255,0.5);">강의 영상 미리보기</p>
+          </div>
+        </div>
+
+        <div class="p-6 sm:p-8">
+          <div class="flex flex-wrap items-center gap-2 mb-3">
+            <span id="modalBadge" class="px-3 py-1 rounded-full text-xs font-semibold"></span>
+            <span id="modalCategory" class="px-3 py-1 rounded-full text-xs font-medium" style="background: rgba(59,130,196,0.1); color: #3b82c4;"></span>
+          </div>
+          <h3 id="modalTitle" class="text-xl sm:text-2xl font-bold mb-2" style="color: #1e3a5f;"></h3>
+          <p class="text-sm mb-1" style="color: #4a8ab5;">
+            <span class="iconify w-4 h-4 inline" data-icon="solar:user-linear" style="color: #3b82c4;"></span>
+            강사: <span id="modalInstructor" class="font-medium" style="color: #1e3a5f;"></span>
+          </p>
+          <p id="modalDesc" class="text-sm mb-6 leading-relaxed" style="color: #4a8ab5;"></p>
+
+          <!-- 진도율 -->
+          <div class="mb-6">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm font-medium" style="color: #1e3a5f;">진도율</span>
+              <span id="modalProgress" class="text-sm font-bold" style="color: #3b82c4;">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div id="modalProgressBar" class="progress-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- 차시 목록 -->
+          <div class="mb-6">
+            <h4 class="text-sm font-bold mb-3" style="color: #1e3a5f;">
+              <span class="iconify w-4 h-4 inline mr-1" data-icon="solar:list-check-linear" style="color: #3b82c4;"></span>
+              차시 목록
+            </h4>
+            <div id="modalLessons" class="space-y-2">
+            </div>
+          </div>
+
+          <div class="flex gap-3">
+            <button id="modalEnrollBtn" class="flex-1 py-3 rounded-xl text-sm font-semibold spring-transition hover:opacity-90 btn-shimmer" style="background-color: #1e3a5f; color: #ffffff;">
+              수강 시작
+            </button>
+            <button id="modalCloseBtn" class="px-6 py-3 rounded-xl text-sm font-medium spring-transition" style="background: rgba(30,58,95,0.06); color: #1e3a5f;">
+              닫기
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== JavaScript ==================== -->
+  <script>
+    // ===== 강좌 데이터 =====
+    var courses = [
+      {
+        id: 1,
+        title: 'AI 기반 맞춤형 교수학습 설계',
+        category: 'ai',
+        categoryLabel: 'AI\u00B7디지털',
+        instructor: '김태호',
+        level: 'intermediate',
+        levelLabel: '중급',
+        students: 342,
+        thumbnail: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=225&fit=crop',
+        desc: 'ChatGPT, Gemini 등 생성형 AI를 활용한 교수학습 설계 방법을 학습합니다. 학생 맞춤형 콘텐츠 제작부터 평가 자동화까지 실습 중심으로 진행됩니다.',
+        lessons: ['AI 교육의 이해', '프롬프트 엔지니어링 기초', '수업 설계에 AI 활용하기', '맞춤형 학습자료 제작', '평가 자동화 시스템 구축', '실전 프로젝트']
+      },
+      {
+        id: 2,
+        title: '초등 수학 게이미피케이션 전략',
+        category: 'math',
+        categoryLabel: '수학',
+        instructor: '박수진',
+        level: 'beginner',
+        levelLabel: '초급',
+        students: 528,
+        thumbnail: 'https://images.unsplash.com/photo-1596495578065-6e0763fa1178?w=400&h=225&fit=crop',
+        desc: '게임 요소를 활용한 수학 수업 설계 방법을 배웁니다. 학생들의 수학 흥미도를 높이는 실질적인 교수법을 제공합니다.',
+        lessons: ['게이미피케이션의 이해', '수학 게임 설계 원리', '디지털 도구 활용', '보드게임과 수학', '평가와 피드백', '사례 연구']
+      },
+      {
+        id: 3,
+        title: '영어 회화 지도를 위한 디지털 도구',
+        category: 'english',
+        categoryLabel: '영어',
+        instructor: '이민아',
+        level: 'beginner',
+        levelLabel: '초급',
+        students: 415,
+        thumbnail: 'https://images.unsplash.com/photo-1543165796-5426273eaab3?w=400&h=225&fit=crop',
+        desc: 'AI 스피킹 파트너, 음성인식 도구 등을 활용하여 효과적인 영어 회화 지도법을 학습합니다.',
+        lessons: ['디지털 영어교육 트렌드', 'AI 스피킹 도구 비교', '음성인식 활용 수업', '온라인 영어 협업', '발음 교정 도구', '수업 설계 실습']
+      },
+      {
+        id: 4,
+        title: '코딩 교육 입문: 스크래치부터 파이썬까지',
+        category: 'info',
+        categoryLabel: '정보',
+        instructor: '정현우',
+        level: 'beginner',
+        levelLabel: '초급',
+        students: 623,
+        thumbnail: 'https://images.unsplash.com/photo-1515879218367-8466d910auj7?w=400&h=225&fit=crop',
+        desc: '블록 코딩(스크래치)부터 텍스트 코딩(파이썬)까지 단계적으로 학습하며, 학교 현장에서 바로 적용 가능한 코딩 수업을 설계합니다.',
+        lessons: ['컴퓨팅 사고력의 이해', '스크래치 기초', '스크래치 심화 프로젝트', '파이썬 입문', '파이썬 활용 수업 설계', '학급 프로젝트 운영']
+      },
+      {
+        id: 5,
+        title: '프로젝트 기반 학습(PBL) 설계와 운영',
+        category: 'method',
+        categoryLabel: '교육방법론',
+        instructor: '최영란',
+        level: 'intermediate',
+        levelLabel: '중급',
+        students: 287,
+        thumbnail: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=225&fit=crop',
+        desc: '실제 문제를 중심으로 학생 주도적 학습을 이끄는 PBL 수업 설계와 운영 노하우를 공유합니다.',
+        lessons: ['PBL의 이론적 배경', '좋은 문제 만들기', '팀 구성과 역할 분담', '과정 중심 평가', '디지털 협업 도구', '사례 분석과 실습']
+      },
+      {
+        id: 6,
+        title: '데이터 리터러시와 통계 교육',
+        category: 'ai',
+        categoryLabel: 'AI\u00B7디지털',
+        instructor: '한지수',
+        level: 'advanced',
+        levelLabel: '고급',
+        students: 198,
+        thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=225&fit=crop',
+        desc: '데이터를 읽고, 분석하고, 시각화하는 능력을 길러주는 수업 방법론을 학습합니다. 스프레드시트부터 간단한 데이터 분석까지 다룹니다.',
+        lessons: ['데이터 리터러시란?', '스프레드시트 활용', '데이터 시각화 기초', '통계적 사고 지도법', '실제 데이터 활용 수업', '프로젝트 설계']
+      },
+      {
+        id: 7,
+        title: '중등 수학 심화: 수학적 모델링',
+        category: 'math',
+        categoryLabel: '수학',
+        instructor: '오세훈',
+        level: 'advanced',
+        levelLabel: '고급',
+        students: 156,
+        thumbnail: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=225&fit=crop',
+        desc: '실생활 문제를 수학적으로 모델링하는 수업 설계 방법을 탐구합니다. 수학적 사고력을 극대화하는 교수법을 다룹니다.',
+        lessons: ['수학적 모델링이란?', '모델링 과정 이해', '실생활 문제 탐구', '테크놀로지 활용', '학생 평가 전략', '모델링 수업 실습']
+      },
+      {
+        id: 8,
+        title: '거꾸로 교실(Flipped Learning) 실전',
+        category: 'method',
+        categoryLabel: '교육방법론',
+        instructor: '김나영',
+        level: 'beginner',
+        levelLabel: '초급',
+        students: 471,
+        thumbnail: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&h=225&fit=crop',
+        desc: '거꾸로 교실의 핵심 원리와 실전 운영법을 학습합니다. 영상 콘텐츠 제작부터 수업 중 활동 설계까지 총망라합니다.',
+        lessons: ['거꾸로 교실의 이해', '효과적인 영상 제작', '수업 중 활동 설계', 'LMS 활용법', '학생 참여 전략', '평가와 피드백']
+      }
+    ];
+
+    // ===== 상태 관리 =====
+    var currentUser = null;
+    var currentCourseId = null;
+
+    // ===== 유틸: 안전한 텍스트 처리 =====
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.appendChild(document.createTextNode(str));
+      return div.textContent;
+    }
+
+    // ===== DOM 요소 생성 헬퍼 =====
+    function createElement(tag, attrs, children) {
+      var el = document.createElement(tag);
+      if (attrs) {
+        Object.keys(attrs).forEach(function(key) {
+          if (key === 'className') el.className = attrs[key];
+          else if (key === 'textContent') el.textContent = attrs[key];
+          else if (key === 'style' && typeof attrs[key] === 'object') {
+            Object.keys(attrs[key]).forEach(function(prop) { el.style[prop] = attrs[key][prop]; });
+          } else if (key.startsWith('on')) {
+            el.addEventListener(key.slice(2).toLowerCase(), attrs[key]);
+          } else el.setAttribute(key, attrs[key]);
+        });
+      }
+      if (children) {
+        if (typeof children === 'string') el.textContent = children;
+        else if (Array.isArray(children)) children.forEach(function(child) { if (child) el.appendChild(child); });
+        else el.appendChild(children);
+      }
+      return el;
+    }
+
+    // localStorage에서 사용자 정보 불러오기
+    function loadUser() {
+      var saved = localStorage.getItem('msecm_remote_user');
+      if (saved) {
+        try {
+          currentUser = JSON.parse(saved);
+          updateUIForLogin();
+        } catch(e) {
+          localStorage.removeItem('msecm_remote_user');
+        }
+      }
+    }
+
+    function saveUser() {
+      if (currentUser) {
+        localStorage.setItem('msecm_remote_user', JSON.stringify(currentUser));
+      }
+    }
+
+    // ===== 로그인 =====
+    function showLoginModal() {
+      document.getElementById('loginModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+      setTimeout(function() { document.getElementById('loginNickname').focus(); }, 300);
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function doLogin() {
+      var nickname = document.getElementById('loginNickname').value.trim();
+      var password = document.getElementById('loginPassword').value.trim();
+      var errorEl = document.getElementById('loginError');
+
+      if (!nickname || !password) {
+        errorEl.textContent = '닉네임과 비밀번호를 모두 입력해주세요.';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      errorEl.classList.add('hidden');
+
+      // 기존 사용자 확인 또는 새로 생성
+      var existingUsers = {};
+      try { existingUsers = JSON.parse(localStorage.getItem('msecm_remote_users') || '{}'); } catch(e) {}
+
+      if (existingUsers[nickname]) {
+        if (existingUsers[nickname].password !== password) {
+          errorEl.textContent = '비밀번호가 일치하지 않습니다.';
+          errorEl.classList.remove('hidden');
+          return;
+        }
+        currentUser = existingUsers[nickname];
+      } else {
+        currentUser = {
+          nickname: nickname,
+          password: password,
+          enrolled: {},
+          totalHours: 0,
+          badges: 0
+        };
+        existingUsers[nickname] = currentUser;
+        localStorage.setItem('msecm_remote_users', JSON.stringify(existingUsers));
+      }
+
+      saveUser();
+      closeLoginModal();
+      updateUIForLogin();
+      renderDashboard();
+      renderCertificates();
+    }
+
+    function doLogout() {
+      currentUser = null;
+      localStorage.removeItem('msecm_remote_user');
+      updateUIForLogout();
+      renderCourses();
+    }
+
+    function updateUIForLogin() {
+      var loginBtn = document.getElementById('loginBtn');
+      // 버튼 내용을 안전하게 변경
+      loginBtn.textContent = '';
+      var icon = document.createElement('span');
+      icon.className = 'iconify w-4 h-4';
+      icon.setAttribute('data-icon', 'solar:user-check-rounded-linear');
+      icon.style.color = '#ffffff';
+      loginBtn.appendChild(icon);
+      loginBtn.appendChild(document.createTextNode(' ' + currentUser.nickname));
+
+      // 기존 이벤트 제거 후 재설정 (로그아웃으로 변경하지 않고 별도 버튼)
+      loginBtn.removeEventListener('click', showLoginModal);
+
+      var dropdown = document.getElementById('userDropdown');
+      if (!dropdown) {
+        dropdown = document.createElement('button');
+        dropdown.id = 'userDropdown';
+        dropdown.className = 'ml-1 px-3 py-2.5 rounded-full text-xs font-medium spring-transition hover:opacity-80';
+        dropdown.style.cssText = 'background: rgba(30,58,95,0.08); color: #1e3a5f;';
+        dropdown.textContent = '로그아웃';
+        dropdown.addEventListener('click', doLogout);
+        loginBtn.parentElement.appendChild(dropdown);
+      }
+
+      // 대시보드 & 수료증 UI 전환
+      document.getElementById('dashboardLoggedOut').classList.add('hidden');
+      document.getElementById('dashboardLoggedIn').classList.remove('hidden');
+      document.getElementById('certificateLoggedOut').classList.add('hidden');
+      document.getElementById('certificateLoggedIn').classList.remove('hidden');
+    }
+
+    function updateUIForLogout() {
+      var loginBtn = document.getElementById('loginBtn');
+      loginBtn.textContent = '';
+      var icon = document.createElement('span');
+      icon.className = 'iconify w-4 h-4';
+      icon.setAttribute('data-icon', 'solar:user-circle-linear');
+      icon.style.color = '#ffffff';
+      loginBtn.appendChild(icon);
+      loginBtn.appendChild(document.createTextNode(' 로그인'));
+      loginBtn.addEventListener('click', showLoginModal);
+
+      var dropdown = document.getElementById('userDropdown');
+      if (dropdown) dropdown.remove();
+
+      document.getElementById('dashboardLoggedOut').classList.remove('hidden');
+      document.getElementById('dashboardLoggedIn').classList.add('hidden');
+      document.getElementById('certificateLoggedOut').classList.remove('hidden');
+      document.getElementById('certificateLoggedIn').classList.add('hidden');
+    }
+
+    // ===== 강좌 카드 렌더링 =====
+    function renderCourses(filter, searchQuery) {
+      filter = filter || 'all';
+      searchQuery = searchQuery || '';
+      var grid = document.getElementById('courseGrid');
+      var filtered = courses.filter(function(c) {
+        var matchCategory = filter === 'all' || c.category === filter;
+        var matchSearch = !searchQuery || c.title.indexOf(searchQuery) !== -1 || c.categoryLabel.indexOf(searchQuery) !== -1 || c.instructor.indexOf(searchQuery) !== -1;
+        return matchCategory && matchSearch;
+      });
+
+      // 기존 내용 제거
+      while (grid.firstChild) grid.removeChild(grid.firstChild);
+
+      if (filtered.length === 0) {
+        var emptyDiv = createElement('div', { className: 'col-span-full text-center py-12' });
+        var emptyIcon = createElement('span', { className: 'iconify w-12 h-12 mx-auto mb-3', 'data-icon': 'solar:magnifer-zoom-in-linear' });
+        emptyIcon.style.color = '#4a8ab5';
+        emptyDiv.appendChild(emptyIcon);
+        var emptyText = createElement('p', { className: 'text-sm' }, '검색 결과가 없습니다.');
+        emptyText.style.color = '#4a8ab5';
+        emptyDiv.appendChild(emptyText);
+        grid.appendChild(emptyDiv);
+        return;
+      }
+
+      filtered.forEach(function(c, i) {
+        var progress = getUserProgress(c.id);
+        var badgeClass = c.level === 'beginner' ? 'badge-beginner' : c.level === 'intermediate' ? 'badge-intermediate' : 'badge-advanced';
+
+        var card = createElement('div', {
+          className: 'course-card card-hover rounded-2xl overflow-hidden cursor-pointer',
+          'data-category': c.category
+        });
+        card.style.cssText = 'background: #ffffff; border: 1px solid rgba(30,58,95,0.08);';
+        card.addEventListener('click', (function(id) { return function() { openCourseModal(id); }; })(c.id));
+
+        // 이미지 영역
+        var imgWrap = createElement('div', { className: 'relative' });
+        var img = createElement('img', { src: c.thumbnail, alt: c.title, className: 'w-full aspect-[16/9] object-cover' });
+        img.addEventListener('error', function() {
+          this.style.background = 'linear-gradient(135deg,#1e3a5f,#2d5a8a)';
+          this.style.minHeight = '160px';
+          this.alt = '';
+        });
+        imgWrap.appendChild(img);
+
+        var badge = createElement('span', {
+          className: 'absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold ' + badgeClass,
+          textContent: c.levelLabel
+        });
+        imgWrap.appendChild(badge);
+        card.appendChild(imgWrap);
+
+        // 내용 영역
+        var content = createElement('div', { className: 'p-4' });
+
+        var catWrap = createElement('div', { className: 'flex items-center gap-2 mb-2' });
+        var catBadge = createElement('span', {
+          className: 'px-2 py-0.5 rounded-full text-[10px] font-semibold',
+          textContent: c.categoryLabel
+        });
+        catBadge.style.cssText = 'background: rgba(59,130,196,0.1); color: #3b82c4;';
+        catWrap.appendChild(catBadge);
+        content.appendChild(catWrap);
+
+        var title = createElement('h3', { className: 'text-sm font-bold mb-1 line-clamp-2', textContent: c.title });
+        title.style.color = '#1e3a5f';
+        content.appendChild(title);
+
+        var instructor = createElement('p', { className: 'text-xs mb-3', textContent: c.instructor + ' 강사' });
+        instructor.style.color = '#4a8ab5';
+        content.appendChild(instructor);
+
+        var progressBarWrap = createElement('div', { className: 'progress-bar mb-2' });
+        var progressFill = createElement('div', { className: 'progress-fill' });
+        progressFill.style.width = progress + '%';
+        progressBarWrap.appendChild(progressFill);
+        content.appendChild(progressBarWrap);
+
+        var statsRow = createElement('div', { className: 'flex items-center justify-between text-[10px]' });
+        statsRow.style.color = '#4a8ab5';
+        var progressLabel = createElement('span', { textContent: '진도율 ' + progress + '%' });
+        statsRow.appendChild(progressLabel);
+
+        var studentsSpan = createElement('span');
+        var studentsIcon = createElement('span', { className: 'iconify w-3 h-3 inline', 'data-icon': 'solar:users-group-rounded-linear' });
+        studentsIcon.style.color = '#4a8ab5';
+        studentsSpan.appendChild(studentsIcon);
+        studentsSpan.appendChild(document.createTextNode(' ' + c.students + '명'));
+        statsRow.appendChild(studentsSpan);
+        content.appendChild(statsRow);
+
+        card.appendChild(content);
+        grid.appendChild(card);
+      });
+    }
+
+    function getUserProgress(courseId) {
+      if (!currentUser || !currentUser.enrolled[courseId]) return 0;
+      var lessons = currentUser.enrolled[courseId].progress;
+      var completed = lessons.filter(Boolean).length;
+      return Math.round((completed / lessons.length) * 100);
+    }
+
+    function filterCourses(filter, btn) {
+      document.querySelectorAll('.filter-btn').forEach(function(b) {
+        b.classList.remove('active');
+        b.style.color = '#1e3a5f';
+        b.style.background = 'rgba(30,58,95,0.06)';
+      });
+      btn.classList.add('active');
+      btn.style.color = '';
+      btn.style.background = '';
+      renderCourses(filter);
+    }
+
+    function handleSearch(query) {
+      document.querySelectorAll('.filter-btn').forEach(function(b, i) {
+        if (i === 0) {
+          b.classList.add('active');
+          b.style.color = '';
+          b.style.background = '';
+        } else {
+          b.classList.remove('active');
+          b.style.color = '#1e3a5f';
+          b.style.background = 'rgba(30,58,95,0.06)';
+        }
+      });
+      renderCourses('all', query.trim());
+    }
+
+    // ===== 강좌 상세 모달 =====
+    function openCourseModal(courseId) {
+      currentCourseId = courseId;
+      var course = courses.find(function(c) { return c.id === courseId; });
+      if (!course) return;
+
+      var badgeClass = course.level === 'beginner' ? 'badge-beginner' : course.level === 'intermediate' ? 'badge-intermediate' : 'badge-advanced';
+      var modalBadge = document.getElementById('modalBadge');
+      modalBadge.className = 'px-3 py-1 rounded-full text-xs font-semibold ' + badgeClass;
+      modalBadge.textContent = course.levelLabel;
+      document.getElementById('modalCategory').textContent = course.categoryLabel;
+      document.getElementById('modalTitle').textContent = course.title;
+      document.getElementById('modalInstructor').textContent = course.instructor;
+      document.getElementById('modalDesc').textContent = course.desc;
+
+      // 진도율
+      var progress = getUserProgress(courseId);
+      document.getElementById('modalProgress').textContent = progress + '%';
+      document.getElementById('modalProgressBar').style.width = progress + '%';
+
+      // 차시 목록
+      var enrolled = currentUser ? currentUser.enrolled[courseId] : null;
+      var lessonsContainer = document.getElementById('modalLessons');
+      while (lessonsContainer.firstChild) lessonsContainer.removeChild(lessonsContainer.firstChild);
+
+      course.lessons.forEach(function(lesson, i) {
+        var isCompleted = enrolled ? (enrolled.progress[i] || false) : false;
+
+        var row = createElement('div', {
+          className: 'flex items-center gap-3 p-3 rounded-xl spring-transition cursor-pointer' + (isCompleted ? '' : ' hover:bg-gray-50')
+        });
+        row.style.cssText = 'background: ' + (isCompleted ? 'rgba(16,185,129,0.06)' : 'transparent') + '; border: 1px solid ' + (isCompleted ? 'rgba(16,185,129,0.2)' : 'rgba(30,58,95,0.06)') + ';';
+        row.addEventListener('click', (function(cId, idx) { return function() { toggleLesson(cId, idx); }; })(courseId, i));
+
+        var circle = createElement('div', { className: 'w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0' });
+        circle.style.background = isCompleted ? '#10b981' : 'rgba(30,58,95,0.08)';
+
+        if (isCompleted) {
+          var checkIcon = createElement('span', { className: 'iconify w-3.5 h-3.5', 'data-icon': 'solar:check-read-linear' });
+          checkIcon.style.color = '#ffffff';
+          circle.appendChild(checkIcon);
+        } else {
+          var numSpan = createElement('span', { className: 'text-[10px] font-bold', textContent: String(i + 1) });
+          numSpan.style.color = '#4a8ab5';
+          circle.appendChild(numSpan);
+        }
+        row.appendChild(circle);
+
+        var labelSpan = createElement('span', { className: 'text-sm flex-1', textContent: (i + 1) + '차시. ' + lesson });
+        labelSpan.style.color = isCompleted ? '#10b981' : '#1e3a5f';
+        if (isCompleted) { labelSpan.style.textDecoration = 'line-through'; labelSpan.style.opacity = '0.7'; }
+        row.appendChild(labelSpan);
+
+        var actionIcon = createElement('span', {
+          className: 'iconify w-4 h-4 flex-shrink-0',
+          'data-icon': isCompleted ? 'solar:check-circle-bold' : 'solar:play-circle-linear'
+        });
+        actionIcon.style.color = isCompleted ? '#10b981' : '#3b82c4';
+        row.appendChild(actionIcon);
+
+        lessonsContainer.appendChild(row);
+      });
+
+      // 버튼 텍스트
+      var enrollBtn = document.getElementById('modalEnrollBtn');
+      if (enrolled) {
+        if (progress === 100) {
+          enrollBtn.textContent = '다시 학습하기';
+          enrollBtn.style.backgroundColor = '#10b981';
+        } else {
+          enrollBtn.textContent = '이어서 학습';
+          enrollBtn.style.backgroundColor = '#3b82c4';
+        }
+      } else {
+        enrollBtn.textContent = '수강 시작';
+        enrollBtn.style.backgroundColor = '#1e3a5f';
+      }
+
+      document.getElementById('courseModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeCourseModal() {
+      document.getElementById('courseModal').classList.remove('active');
+      document.body.style.overflow = '';
+      currentCourseId = null;
+    }
+
+    function enrollCourse() {
+      if (!currentUser) {
+        closeCourseModal();
+        showLoginModal();
+        return;
+      }
+
+      var course = courses.find(function(c) { return c.id === currentCourseId; });
+      if (!course) return;
+
+      if (!currentUser.enrolled[currentCourseId]) {
+        currentUser.enrolled[currentCourseId] = {
+          progress: new Array(course.lessons.length).fill(false),
+          startedAt: new Date().toISOString()
+        };
+        saveUser();
+        updateUserStorage();
+      }
+
+      // 첫 미완료 차시 자동 완료
+      var enrolled = currentUser.enrolled[currentCourseId];
+      var firstIncomplete = enrolled.progress.indexOf(false);
+      if (firstIncomplete !== -1) {
+        enrolled.progress[firstIncomplete] = true;
+        currentUser.totalHours = (currentUser.totalHours || 0) + 0.5;
+
+        // 뱃지 체크
+        var completedCount = Object.keys(currentUser.enrolled).filter(function(id) {
+          var e = currentUser.enrolled[id];
+          return e.progress.every(Boolean);
+        }).length;
+        currentUser.badges = completedCount;
+
+        saveUser();
+        updateUserStorage();
+      }
+
+      openCourseModal(currentCourseId);
+      renderCourses();
+      renderDashboard();
+      renderCertificates();
+    }
+
+    function toggleLesson(courseId, lessonIndex) {
+      if (!currentUser) {
+        showLoginModal();
+        return;
+      }
+
+      var course = courses.find(function(c) { return c.id === courseId; });
+      if (!course) return;
+
+      if (!currentUser.enrolled[courseId]) {
+        currentUser.enrolled[courseId] = {
+          progress: new Array(course.lessons.length).fill(false),
+          startedAt: new Date().toISOString()
+        };
+      }
+
+      var enrolled = currentUser.enrolled[courseId];
+      enrolled.progress[lessonIndex] = !enrolled.progress[lessonIndex];
+
+      if (enrolled.progress[lessonIndex]) {
+        currentUser.totalHours = (currentUser.totalHours || 0) + 0.5;
+      } else {
+        currentUser.totalHours = Math.max(0, (currentUser.totalHours || 0) - 0.5);
+      }
+
+      var completedCount = Object.keys(currentUser.enrolled).filter(function(id) {
+        var e = currentUser.enrolled[id];
+        return e.progress.every(Boolean);
+      }).length;
+      currentUser.badges = completedCount;
+
+      saveUser();
+      updateUserStorage();
+      openCourseModal(courseId);
+      renderCourses();
+      renderDashboard();
+      renderCertificates();
+    }
+
+    function updateUserStorage() {
+      var existingUsers = {};
+      try { existingUsers = JSON.parse(localStorage.getItem('msecm_remote_users') || '{}'); } catch(e) {}
+      if (currentUser && existingUsers[currentUser.nickname]) {
+        existingUsers[currentUser.nickname] = currentUser;
+        localStorage.setItem('msecm_remote_users', JSON.stringify(existingUsers));
+      }
+    }
+
+    // ===== 대시보드 =====
+    function renderDashboard() {
+      if (!currentUser) return;
+
+      var enrolled = currentUser.enrolled || {};
+      var enrolledIds = Object.keys(enrolled).map(Number);
+      var inProgress = enrolledIds.filter(function(id) {
+        var e = enrolled[id];
+        return e.progress.some(Boolean) && !e.progress.every(Boolean);
+      });
+      var completed = enrolledIds.filter(function(id) {
+        var e = enrolled[id];
+        return e.progress.every(Boolean);
+      });
+
+      // 통계
+      document.getElementById('statHours').textContent = (currentUser.totalHours || 0).toFixed(1) + 'h';
+      document.getElementById('statInProgress').textContent = inProgress.length;
+      document.getElementById('statCompleted').textContent = completed.length;
+      document.getElementById('statBadges').textContent = currentUser.badges || 0;
+
+      // 수강 중
+      var inProgressEl = document.getElementById('inProgressCourses');
+      var noInProgress = document.getElementById('noInProgress');
+      while (inProgressEl.firstChild) inProgressEl.removeChild(inProgressEl.firstChild);
+
+      if (inProgress.length === 0) {
+        noInProgress.classList.remove('hidden');
+      } else {
+        noInProgress.classList.add('hidden');
+        inProgress.forEach(function(id) {
+          var course = courses.find(function(c) { return c.id === id; });
+          if (!course) return;
+          var progress = getUserProgress(id);
+
+          var card = createElement('div', { className: 'p-4 rounded-2xl card-hover cursor-pointer' });
+          card.style.cssText = 'background: #ffffff; border: 1px solid rgba(30,58,95,0.08);';
+          card.addEventListener('click', (function(cId) { return function() { openCourseModal(cId); }; })(id));
+
+          var topRow = createElement('div', { className: 'flex items-center gap-3 mb-3' });
+          var thumb = createElement('img', { src: course.thumbnail, alt: '', className: 'w-16 h-10 rounded-lg object-cover' });
+          thumb.addEventListener('error', function() { this.style.background = '#1e3a5f'; this.style.minWidth = '64px'; });
+          topRow.appendChild(thumb);
+
+          var info = createElement('div', { className: 'flex-1 min-w-0' });
+          var titleEl = createElement('h4', { className: 'text-sm font-bold truncate', textContent: course.title });
+          titleEl.style.color = '#1e3a5f';
+          info.appendChild(titleEl);
+          var instrEl = createElement('p', { className: 'text-xs', textContent: course.instructor + ' 강사' });
+          instrEl.style.color = '#4a8ab5';
+          info.appendChild(instrEl);
+          topRow.appendChild(info);
+          card.appendChild(topRow);
+
+          var pBar = createElement('div', { className: 'progress-bar mb-1' });
+          var pFill = createElement('div', { className: 'progress-fill' });
+          pFill.style.width = progress + '%';
+          pBar.appendChild(pFill);
+          card.appendChild(pBar);
+
+          var pLabel = createElement('p', { className: 'text-[10px] text-right', textContent: progress + '% 완료' });
+          pLabel.style.color = '#3b82c4';
+          card.appendChild(pLabel);
+
+          inProgressEl.appendChild(card);
+        });
+      }
+
+      // 완료
+      var completedEl = document.getElementById('completedCourses');
+      var noCompleted = document.getElementById('noCompleted');
+      while (completedEl.firstChild) completedEl.removeChild(completedEl.firstChild);
+
+      if (completed.length === 0) {
+        noCompleted.classList.remove('hidden');
+      } else {
+        noCompleted.classList.add('hidden');
+        completed.forEach(function(id) {
+          var course = courses.find(function(c) { return c.id === id; });
+          if (!course) return;
+
+          var card = createElement('div', { className: 'p-4 rounded-2xl card-hover' });
+          card.style.cssText = 'background: rgba(16,185,129,0.04); border: 1px solid rgba(16,185,129,0.15);';
+
+          var row = createElement('div', { className: 'flex items-center gap-3' });
+          var iconWrap = createElement('div', { className: 'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0' });
+          iconWrap.style.background = 'rgba(16,185,129,0.1)';
+          var checkIcon = createElement('span', { className: 'iconify w-5 h-5', 'data-icon': 'solar:check-circle-bold' });
+          checkIcon.style.color = '#10b981';
+          iconWrap.appendChild(checkIcon);
+          row.appendChild(iconWrap);
+
+          var info = createElement('div', { className: 'flex-1 min-w-0' });
+          var titleEl = createElement('h4', { className: 'text-sm font-bold truncate', textContent: course.title });
+          titleEl.style.color = '#1e3a5f';
+          info.appendChild(titleEl);
+          var statusEl = createElement('p', { className: 'text-xs', textContent: '수료 완료' });
+          statusEl.style.color = '#10b981';
+          info.appendChild(statusEl);
+          row.appendChild(info);
+
+          card.appendChild(row);
+          completedEl.appendChild(card);
+        });
+      }
+    }
+
+    // ===== 수료증 =====
+    function renderCertificates() {
+      if (!currentUser) return;
+
+      var enrolled = currentUser.enrolled || {};
+      var completed = Object.keys(enrolled).filter(function(id) {
+        var e = enrolled[id];
+        return e.progress.every(Boolean);
+      }).map(Number);
+
+      var listEl = document.getElementById('certificateList');
+      var noCert = document.getElementById('noCertificate');
+      while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
+
+      if (completed.length === 0) {
+        noCert.classList.remove('hidden');
+      } else {
+        noCert.classList.add('hidden');
+        completed.forEach(function(id) {
+          var course = courses.find(function(c) { return c.id === id; });
+          if (!course) return;
+
+          var card = createElement('div', { className: 'p-6 rounded-2xl text-center card-hover' });
+          card.style.cssText = 'background: linear-gradient(135deg, rgba(30,58,95,0.03), rgba(59,130,196,0.06)); border: 2px solid rgba(59,130,196,0.15);';
+
+          var diplomaIcon = createElement('span', { className: 'iconify w-12 h-12 mx-auto mb-3', 'data-icon': 'solar:diploma-verified-bold-duotone' });
+          diplomaIcon.style.color = '#1e3a5f';
+          card.appendChild(diplomaIcon);
+
+          var titleEl = createElement('h4', { className: 'text-sm font-bold mb-1', textContent: course.title });
+          titleEl.style.color = '#1e3a5f';
+          card.appendChild(titleEl);
+
+          var userEl = createElement('p', { className: 'text-xs mb-3', textContent: '수료자: ' + currentUser.nickname });
+          userEl.style.color = '#4a8ab5';
+          card.appendChild(userEl);
+
+          var verifiedWrap = createElement('div', { className: 'inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold' });
+          verifiedWrap.style.cssText = 'background: rgba(16,185,129,0.1); color: #10b981;';
+          var vIcon = createElement('span', { className: 'iconify w-3.5 h-3.5', 'data-icon': 'solar:verified-check-linear' });
+          vIcon.style.color = '#10b981';
+          verifiedWrap.appendChild(vIcon);
+          verifiedWrap.appendChild(document.createTextNode(' 수료 인증 완료'));
+          card.appendChild(verifiedWrap);
+
+          listEl.appendChild(card);
+        });
+      }
+    }
+
+    // ===== 네비게이션 =====
+    function toggleMobileMenu() {
+      var menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('hidden');
+      menu.classList.toggle('visible');
+    }
+
+    // ===== 초기화 =====
+    document.addEventListener('DOMContentLoaded', function() {
+      // 이벤트 리스너 등록
+      document.getElementById('loginBtn').addEventListener('click', showLoginModal);
+      document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
+      document.getElementById('mobileLoginBtn').addEventListener('click', function() { showLoginModal(); toggleMobileMenu(); });
+      document.getElementById('dashboardLoginBtn').addEventListener('click', showLoginModal);
+      document.getElementById('certLoginBtn').addEventListener('click', showLoginModal);
+      document.getElementById('closeLoginBtn').addEventListener('click', closeLoginModal);
+      document.getElementById('doLoginBtn').addEventListener('click', doLogin);
+      document.getElementById('closeCourseBtn').addEventListener('click', closeCourseModal);
+      document.getElementById('modalEnrollBtn').addEventListener('click', enrollCourse);
+      document.getElementById('modalCloseBtn').addEventListener('click', closeCourseModal);
+
+      // 모달 배경 클릭으로 닫기
+      document.getElementById('loginModal').addEventListener('click', function(e) { if (e.target === this) closeLoginModal(); });
+      document.getElementById('courseModal').addEventListener('click', function(e) { if (e.target === this) closeCourseModal(); });
+
+      // 검색
+      document.getElementById('heroSearch').addEventListener('keyup', function(e) { handleSearch(this.value); });
+      document.getElementById('heroSearchBtn').addEventListener('click', function() { handleSearch(document.getElementById('heroSearch').value); });
+
+      // 필터 탭
+      document.querySelectorAll('#filterTabs .filter-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() { filterCourses(this.getAttribute('data-filter'), this); });
+      });
+
+      // 모바일 링크 클릭 시 메뉴 닫기
+      document.querySelectorAll('.mobile-link').forEach(function(link) {
+        link.addEventListener('click', toggleMobileMenu);
+      });
+
+      // 로그인 입력 필드 포커스 스타일
+      var inputs = document.querySelectorAll('#loginModal input');
+      inputs.forEach(function(input) {
+        input.addEventListener('focus', function() { this.style.borderColor = '#3b82c4'; });
+        input.addEventListener('blur', function() { this.style.borderColor = '#e5e7eb'; });
+      });
+      document.getElementById('loginPassword').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+
+      // 사용자 로드
+      loadUser();
+
+      // 강좌 렌더링
+      renderCourses();
+
+      // 대시보드 & 수료증
+      if (currentUser) {
+        renderDashboard();
+        renderCertificates();
+      }
+
+      // 스크롤 진입 애니메이션
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry, i) {
+          if (entry.isIntersecting) {
+            setTimeout(function() { entry.target.classList.add('revealed'); }, i * 100);
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+      document.querySelectorAll('.scroll-reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(function(el) { observer.observe(el); });
+
+      // 네비게이션 스크롤 효과
+      var navbar = document.getElementById('navbar');
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 20) {
+          navbar.classList.add('scrolled');
+        } else {
+          navbar.classList.remove('scrolled');
+        }
+      }, { passive: true });
+
+      // 스크롤 프로그레스 바
+      var scrollProgress = document.createElement('div');
+      scrollProgress.style.cssText = 'position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#1e3a5f,#3b82c4,#5ba0db);z-index:9999;transition:width 0.1s linear;width:0%;';
+      document.body.appendChild(scrollProgress);
+      window.addEventListener('scroll', function() {
+        var pct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight) * 100;
+        scrollProgress.style.width = pct + '%';
+      }, { passive: true });
+
+      // 부드러운 스크롤
+      document.querySelectorAll('a[href^="#"]').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          var target = document.querySelector(link.getAttribute('href'));
+          if (target) {
+            e.preventDefault();
+            var offset = navbar.offsetHeight + 20;
+            window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - offset, behavior: 'smooth' });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
